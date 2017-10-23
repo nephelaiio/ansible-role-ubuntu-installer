@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: Ted Cook
+  description: An Ansible role to create Ubuntu auto install images
+  license: MIT
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+        - 7
+    - name: Archlinux
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - xenial
+    - name: Debian
+      versions:
+        - stretch
+  galaxy_tags:
+    - ubuntu-installer
+
+dependencies:
+  - role: nephelaiio.plugins
+    version: 1.0.0

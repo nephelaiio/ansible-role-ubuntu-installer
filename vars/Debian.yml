@@ -1,0 +1,5 @@
+---
+ubuntu_installer_package_names:
+  - syslinux
+  - syslinux-utils
+  - openssh-client

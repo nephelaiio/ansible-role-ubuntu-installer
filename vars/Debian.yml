@@ -4,3 +4,4 @@ ubuntu_installer_package_names:
   - syslinux-utils
   - openssh-client
   - p7zip-full
+  - genisoimage

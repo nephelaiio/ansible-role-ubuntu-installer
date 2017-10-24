@@ -142,13 +142,8 @@
 
 - name: remove temporary directories
   file:
-    path: "{{ tmpitem }}"
+    path: "{{ tmpdir_dest.path }}"
     state: absent
-  with_items:
-    - "{{ tmpdir_dest.path }}"
-    - "/tmp/{{ ubuntu_host }}.iso"
-  loop_control:
-    loop_var: tmpitem
   become: yes
   changed_when: false
  

@@ -139,6 +139,7 @@
 - name: make iso bootable
   command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
   become: yes
+  changed_when: false
 
 - name: remove temporary directories
   file:

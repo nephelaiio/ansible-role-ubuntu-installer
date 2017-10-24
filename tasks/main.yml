@@ -50,13 +50,6 @@
   set_fact:
     target_sshkey: "{{ inspect_sshkey.stdout }}"
 
-- name: create temporary mount directory
-  tempfile:
-    state: directory
-    prefix: iso
-  register: tmpdir_src
-  changed_when: false
-
 - name: create temporary target directory
   tempfile:
     state: directory
@@ -78,25 +71,12 @@
     url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
     dest: "{{ src_iso }}"
 
-- name: mount ubuntu source iso
-  command: "mount -t iso9660 -o loop {{ src_iso }} {{ tmpdir_src.path }}"
+- name: extract ubuntu source iso
+  command: "7zip x {{ src_iso }}"
   args:
-    warn: no
-  become: yes
-
-- name: create output tree structure
-  command: "cp -aT {{ tmpdir_src.path }} {{ tmpdir_dest.path }}"
-  args:
-    creates: "{{ tmpdir_dest.path }}/isolinux"
-  become: yes
+    chdir: "{{ tmpdir_dest.path }}"
   changed_when: false
-
-- name: unmount ubuntu source iso
-  command: "umount {{ tmpdir_src.path }}"
-  args:
-    warn: no
   become: yes
-  changed_when: false
 
 - name: define installation menu language
   copy:
@@ -170,7 +150,6 @@
     path: "{{ tmpitem }}"
     state: absent
   with_items:
-    - "{{ tmpdir_src.path }}"
     - "{{ tmpdir_dest.path }}"
     - "/tmp/{{ ubuntu_host }}.iso"
   loop_control:

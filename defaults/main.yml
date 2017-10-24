@@ -2,6 +2,7 @@
 ubuntu_installer_packages:
   - syslinux
   - openssh
+  - p7zip
 
 ubuntu_installer_package_names: "{{ ubuntu_installer_packages }}"
 

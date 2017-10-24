@@ -27,5 +27,6 @@ ubuntu_installer_sshkey:  # defaults to sshkey of the user executing the role, i
 ubuntu_installer_late_command:  # override seed file late command
 
 ubuntu_installer_interface:  # override seed file network autoconfiguration
+  static: false
 
 ubuntu_installer_disk:  # override seed file disk autodetection

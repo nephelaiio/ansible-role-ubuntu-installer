@@ -130,16 +130,11 @@
   changed_when: false
 
 - name: create ubuntu autoinstall iso
-  command: "mkisofs -D -r -V '{{ ubuntu_installer_hostname }}' -cache-inodes -J -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o /tmp/{{ ubuntu_installer_hostname }}.iso ."
+  command: "mkisofs -D -r -V '{{ ubuntu_installer_hostname }}' -cache-inodes -J -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."
   args:
     chdir: "{{ tmpdir_dest.path }}"
   become: yes
   changed_when: false
-
-- name: archive ubuntu autoinstall iso
-  command: "cp /tmp/{{ ubuntu_installer_hostname }}.iso {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
-  tags:
-    - skip_ansible_lint
 
 - name: make iso bootable
   command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
@@ -156,3 +151,4 @@
     loop_var: tmpitem
   become: yes
   changed_when: false
+ 

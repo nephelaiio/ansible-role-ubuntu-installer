@@ -34,7 +34,7 @@
   set_fact:
     target_password: "{{ inspect_password.stdout | split_with(':') | tail | head }}"
 
-- name: create ssh key for current user 
+- name: create ssh key for current user
   command: "ssh-keygen -b 2048 -t rsa -f ~{{ target_username }}/.ssh/id_rsa.pub -q -N ''"
   args:
     creates: "~{{ target_username }}/.ssh/id_rsa.pub"
@@ -147,4 +147,3 @@
     state: absent
   become: yes
   changed_when: false
- 

@@ -18,11 +18,11 @@ d-i debconf/language                                        string      en_US:en
 d-i netcfg/choose_interface                                 select      auto
 {% if interface.static %}
 d-i netcfg/disable_autoconfig                               boolean     true
-d-i netcfg/get_ipaddress                                   string      {{ interface.ipaddress }}
-d-i netcfg/get_netmask                                     string      {{ interface.netmask }}
-d-i netcfg/get_gateway                                     string      {{ interface.gateway }}
-d-i netcfg/get_nameservers                                 string      {{ interface.nameservers }}
-d-i netcfg/confirm_static                                  boolean     true
+d-i netcfg/get_ipaddress                                    string      {{ interface.ipaddress }}
+d-i netcfg/get_netmask                                      string      {{ interface.netmask }}
+d-i netcfg/get_gateway                                      string      {{ interface.gateway }}
+d-i netcfg/get_nameservers                                  string      {{ interface.nameservers }}
+d-i netcfg/confirm_static                                   boolean     true
 {% endif %}
 d-i netcfg/dhcp_timeout                                     string      5
 d-i netcfg/get_hostname                                     string      {{ hostname }}

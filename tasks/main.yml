@@ -109,7 +109,7 @@
     password: "{{ ubuntu_installer_password | default(target_password) }}"
     sshkey: "{{ ubuntu_installer_sshkey | default(target_sshkey) }}"
     late_command: "{{ ubuntu_installer_late_command | default('') }}"
-    interface: "{{ ubuntu_installer_interface | default({}) }}"
+    interface: "{{ ubuntu_installer_interface | default({'static': false}) }}"
     disk: "{{ ubuntu_installer_disk | default('') }}"
   become: yes
   changed_when: false

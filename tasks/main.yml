@@ -72,7 +72,7 @@
     dest: "{{ src_iso }}"
 
 - name: extract ubuntu source iso
-  command: "7zip x {{ src_iso }}"
+  command: "7z x {{ src_iso }}"
   args:
     chdir: "{{ tmpdir_dest.path }}"
   changed_when: false

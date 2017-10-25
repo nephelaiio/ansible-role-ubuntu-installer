@@ -3,7 +3,7 @@ ubuntu_installer_packages:
   - syslinux
   - openssh
   - p7zip
-  - cdrkit
+  - cdrtools
 
 ubuntu_installer_package_names: "{{ ubuntu_installer_packages }}"
 

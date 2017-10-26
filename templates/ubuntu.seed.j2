@@ -91,8 +91,8 @@ d-i grub-installer/with_other_os                            boolean     false
 d-i finish-install/reboot_in_progress                       note
 d-i finish-install/keep-consoles                            boolean     false
 d-i cdrom-detect/eject                                      boolean     true
-d-i debian-installer/exit/halt                              boolean     false
-d-i debian-installer/exit/poweroff                          boolean     false
+d-i debian-installer/exit/halt                              boolean     {{ halt }}
+d-i debian-installer/exit/poweroff                          boolean     {{ halt }}
 
 {% if late_command != '' %}
 d-i preseed/late_command                                    string      {{ late_command }}

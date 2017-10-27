@@ -69,7 +69,7 @@
   vars:
     hostname: "{{ ubuntu_installer_hostname | split_with('.') | head }}"
     domain: "{{ ubuntu_installer_hostname | split_with('.') | tail | join('.') }}"
-    timezone: "{{ ubuntu_installer_timezone | default('America/Costa_Rica') }}"
+    timezone: "{{ ubuntu_installer_timezone }}"
     username: "{{ ubuntu_installer_username }}"
     password: "{{ ubuntu_installer_password }}"
     sshkey: "{{ ubuntu_installer_sshkey }}"

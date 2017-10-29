@@ -33,3 +33,5 @@ ubuntu_installer_interface:  # override seed file network autoconfiguration
 ubuntu_installer_disk:  # override seed file disk autodetection
 
 ubuntu_installer_halt: false  # true | false
+
+ubuntu_seed_template: ubuntu.seed.j2

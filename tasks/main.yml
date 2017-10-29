@@ -64,7 +64,7 @@
 
 - name: create seed file
   template:
-    src: ubuntu.seed.j2
+    src: "{{ ubuntu_seed_template }}"
     dest: "{{ tmpdir_dest.path }}/{{ seed_file }}"
   vars:
     hostname: "{{ ubuntu_installer_hostname | split_with('.') | head }}"

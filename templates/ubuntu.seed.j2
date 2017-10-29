@@ -57,7 +57,7 @@ d-i apt-setup/backports                                     boolean     true
 d-i apt-setup/services-select                               multiselect security
 d-i apt-setup/security_host                                 string      security.ubuntu.com
 d-i apt-setup/security_path                                 string      /ubuntu
-tasksel tasksel/first                                       multiselect Basic Ubuntu server
+tasksel tasksel/first                                       multiselect openssh-server
 d-i pkgsel/upgrade                                          select      safe-upgrade
 d-i pkgsel/update-policy                                    select      none
 d-i pkgsel/updatedb                                         boolean     true
@@ -107,7 +107,6 @@ sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT.*/GRUB_CMDLINE_LINUX_DEFAULT="nosplash"
 echo "ARRAY <ignore> devices={{ disk }}" >> /target/etc/mdadm/mdadm.conf; \
 {% endif %}
 in-target chown -R {{ username }}:{{ username }} /home/{{ username }}/.ssh; \
-in-target apt-get install -y openssh-server python; \
-in-target systemctl enable ssh; \
+in-target apt-get install -y python; \
 in-target update-grub;
 {% endif %}

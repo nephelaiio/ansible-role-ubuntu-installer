@@ -1,3 +1,4 @@
 ansible==2.3.2.0
 molecule>=2.1.0
 docker-py>=1.9.0
+netaddr>=0.7.19

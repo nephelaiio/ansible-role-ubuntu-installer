@@ -1,15 +1,7 @@
 ---
-ubuntu_installer_packages:
-  - syslinux
-  - openssh
-  - p7zip
-  - cdrtools
+ubuntu_installer_packages: # per distribution defaults
 
-ubuntu_installer_package_names: "{{ ubuntu_installer_packages }}"
-
-ubuntu_installer_packages_state: present
-
-ubuntu_installer_package_state: "{{ ubuntu_installer_packages_state }}"
+ubuntu_installer_package_state: present
 
 ubuntu_installer_target_dir: "/tmp"
 

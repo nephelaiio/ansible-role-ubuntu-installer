@@ -1,5 +1,10 @@
 ---
-ubuntu_installer_packages: # per distribution defaults
+ubuntu_installer_packages:
+  - syslinux
+  - syslinux-utils
+  - openssh-client
+  - p7zip-full
+  - genisoimage
 
 ubuntu_installer_package_state: present
 

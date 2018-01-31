@@ -1,10 +1,5 @@
 ---
-ubuntu_installer_packages:
-  - syslinux
-  - syslinux-utils
-  - openssh-client
-  - p7zip-full
-  - genisoimage
+ubuntu_installer_packages: # defaults per os family
 
 ubuntu_installer_package_state: present
 

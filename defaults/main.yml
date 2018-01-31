@@ -1,5 +1,5 @@
 ---
-ubuntu_installer_packages: # defaults per os family
+# ubuntu_installer_packages: # defaults per os family
 
 ubuntu_installer_package_state: present
 

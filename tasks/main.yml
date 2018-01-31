@@ -13,7 +13,7 @@
   package:
     name: "{{ item }}"
     state: "{{ ubuntu_installer_package_state }}"
-  with_items: "{{ ubuntu_installer_packages }}"
+  with_items: "{{ ubuntu_installer_packages | default(ubuntu_installer_packages_default) }}"
 
 - name: create temporary target directory
   tempfile:

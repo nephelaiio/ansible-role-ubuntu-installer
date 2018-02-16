@@ -77,6 +77,7 @@
     interface: "{{ ubuntu_installer_interface }}"
     disk: "{{ ubuntu_installer_disk | default('') }}"
     halt: "{{ ubuntu_installer_halt | default('false') }}"
+    mirror: "{{ ubuntu_mirror }}"
   become: yes
   changed_when: false
 

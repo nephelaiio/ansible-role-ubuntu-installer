@@ -103,6 +103,7 @@ echo "blacklist ipv6" >> /target/etc/modprobe.d/blacklist.conf; \
 echo "{{ username }} ALL=(ALL) NOPASSWD: ALL" >> /target/etc/sudoers.d/{{ username }}; \
 chmod 440 /target/etc/sudoers.d/{{ username }}; \
 sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT.*/GRUB_CMDLINE_LINUX_DEFAULT="nosplash"/' /target/etc/default/grub; \
+sed -i -e 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /target/etc/ssh/sshd_config; \
 {% if disk != '' %}
 echo "ARRAY <ignore> devices={{ disk }}" >> /target/etc/mdadm/mdadm.conf; \
 {% endif %}

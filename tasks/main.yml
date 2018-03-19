@@ -27,13 +27,17 @@
     state: directory
     path: "{{ ubuntu_installer_target_dir }}"
 
+- name: register source ubuntu url
+  set_fact:
+    src_url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
+
 - name: register source ubuntu iso file
   set_fact:
     src_iso: "{{ ubuntu_installer_target_dir }}/ubuntu.{{ ubuntu_installer_release }}.iso"
 
 - name: fetch ubuntu source iso
   get_url:
-    url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
+    url: "{{ ubuntu_installer_image_url | default(src_url) }}"
     dest: "{{ src_iso }}"
 
 - name: extract ubuntu source iso

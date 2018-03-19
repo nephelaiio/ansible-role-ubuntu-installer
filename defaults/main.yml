@@ -1,6 +1,8 @@
 ---
 # ubuntu_installer_packages: # defaults per os family
 
+# ubuntu_installer_image_url: # define to override the ubuntu iso location (e.g. when using a local proxy)
+
 ubuntu_installer_package_state: present
 
 ubuntu_installer_target_dir: "/tmp"

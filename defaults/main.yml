@@ -31,3 +31,5 @@ ubuntu_installer_halt: false  # true | false
 ubuntu_seed_template: ubuntu.seed.j2
 
 ubuntu_mirror: archive.ubuntu.com
+
+ubuntu_security_mirror: security.ubuntu.com

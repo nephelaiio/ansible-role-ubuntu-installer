@@ -82,6 +82,7 @@
     disk: "{{ ubuntu_installer_disk | default('') }}"
     halt: "{{ ubuntu_installer_halt | default('false') }}"
     mirror: "{{ ubuntu_mirror }}"
+    security_mirror: "{{ ubuntu_security_mirror }}"
   become: yes
   changed_when: false
 

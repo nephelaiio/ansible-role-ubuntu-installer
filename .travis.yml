@@ -11,7 +11,8 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - molecule test
+  - molecule test --scenario-name default
+  - molecule test --scenario-name netinstall
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

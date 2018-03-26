@@ -54,9 +54,14 @@
   become: yes
   changed_when: false
 
+- name: check isolinux configuration file location
+  command: "find {{ tmpdir_dest.path }} -name isolinux.cfg"
+  register: isolinux_cfgdest
+  changed_when: false
+
 - name: configure isolinux
   lineinfile:
-    path: "{{ tmpdir_dest.path }}/isolinux/isolinux.cfg"
+    path: "{{ isolinux_cfgdest.stdout }}"
     regexp: 'timeout\s+[0-9]+'
     line: 'timeout 1'
   become: yes
@@ -91,10 +96,15 @@
   register: seed_md5sum
   changed_when: false
 
+- name: check isolinux boot file location
+  command: "find {{ tmpdir_dest.path }} -name txt.cfg"
+  register: isolinux_bootdest
+  changed_when: false
+
 - name: set bootloader preseed configuration
   template:
     src: isolinux.txt.j2
-    dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
+    dest: "{{ isolinux_bootdest.stdout }}"
   vars:
     preseed_file: "{{ seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"

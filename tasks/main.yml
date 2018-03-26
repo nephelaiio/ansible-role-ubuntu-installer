@@ -55,7 +55,7 @@
   changed_when: false
 
 - name: check isolinux configuration file location
-  command: "find {{ tmpdir_dest.path }} -name isolinux.cfg"
+  command: "find {{ tmpdir_dest.path }} -maxdepth 1 -name isolinux.cfg"
   register: isolinux_cfgdest
   changed_when: false
 
@@ -97,7 +97,7 @@
   changed_when: false
 
 - name: check isolinux boot file location
-  command: "find {{ tmpdir_dest.path }} -name txt.cfg"
+  command: "find {{ tmpdir_dest.path }} -maxdepth 1 -name txt.cfg"
   register: isolinux_bootdest
   changed_when: false
 

@@ -47,15 +47,8 @@
   changed_when: false
   become: yes
 
-- name: define installation menu language
-  copy:
-    dest: "{{ tmpdir_dest.path }}/isolinux/lang"
-    content: en
-  become: yes
-  changed_when: false
-
 - name: check isolinux configuration file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 1 -name isolinux.cfg"
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
   register: isolinux_cfgdest
   changed_when: false
 
@@ -97,7 +90,7 @@
   changed_when: false
 
 - name: check isolinux boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 1 -name txt.cfg"
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
   register: isolinux_bootdest
   changed_when: false
 

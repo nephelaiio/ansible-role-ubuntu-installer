@@ -101,6 +101,7 @@
     src: isolinux.txt.j2
     dest: "{{ isolinux_bootdest.stdout }}"
   vars:
+    preseed_url: "{{ ubuntu_preseed_url | default('') }}"
     preseed_file: "{{ seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"
   become: yes

@@ -50,6 +50,7 @@
 - name: check isolinux configuration file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
   register: isolinux_cfgdest
+  become: yes
   changed_when: false
 
 - name: configure isolinux
@@ -92,6 +93,7 @@
 - name: check isolinux boot file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
   register: isolinux_bootdest
+  become: yes
   changed_when: false
 
 - name: set bootloader preseed configuration
@@ -107,11 +109,13 @@
 - name: check isolinux bin file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
   register: isolinux_bindest
+  become: yes
   changed_when: false
 
 - name: check isolinux boot cat file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name boot.cat"
   register: isolinux_bootcatdest
+  become: yes
   changed_when: false
 
 - name: compute isolinux bin

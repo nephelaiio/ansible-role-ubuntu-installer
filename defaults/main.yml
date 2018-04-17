@@ -15,11 +15,11 @@ ubuntu_installer_hostname: host.example.com
 
 ubuntu_installer_timezone: America/Costa_Rica
 
-ubuntu_installer_username:  # defaults to name of the user executing the role
+ubuntu_installer_username:  # required
 
-ubuntu_installer_password:  # defaults to password of the user executing the role
+ubuntu_installer_password:  # required
 
-ubuntu_installer_sshkey:  # defaults to sshkey of the user executing the role, it will be created if necessary
+ubuntu_installer_sshkey:  # required
 
 ubuntu_installer_late_command:  # override seed file late command
 
@@ -35,3 +35,5 @@ ubuntu_seed_template: ubuntu.seed.j2
 ubuntu_mirror: archive.ubuntu.com
 
 ubuntu_security_mirror: security.ubuntu.com
+
+ubuntu_seed_file: ubuntu.seed

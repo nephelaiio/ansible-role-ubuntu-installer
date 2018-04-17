@@ -63,7 +63,7 @@
 
 - name: register seed file
   set_fact:
-    seed_file: "ubuntu.seed"
+    seed_file: "{{ ubuntu_seed_file }}"
 
 - name: create seed file
   template:

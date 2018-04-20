@@ -40,12 +40,57 @@
     url: "{{ ubuntu_installer_image_url | default(src_url) }}"
     dest: "{{ src_iso }}"
 
-- name: extract ubuntu source iso
-  command: "7z x {{ src_iso }}"
-  args:
-    chdir: "{{ tmpdir_dest.path }}"
+- name: create temporary mount fstab
+  tempfile:
+    state: directory
+    prefix: fstab
+  register: mntfile_dest
+  changed_when: false
+
+- name: create temporary mount directory
+  tempfile:
+    state: directory
+    prefix: mnt
+  register: mntdir_dest
+  changed_when: false
+
+- name: mount centos source iso
+  mount:
+    src: "{{ iso_path }}" 
+    path: "{{ mntdir_dest.path }}"
+    state: mounted
+    opts: loop
+    fstype: iso9660
   changed_when: false
   become: yes
+
+- name: extract source iso files
+  command: "rsync -a {{ mntdir_dest.path }}/ {{ tmpdir_dest.path }}/"
+  become: yes
+  changed_when: false
+
+- name: unmount centos source iso
+  mount:
+    src: "{{ iso_path }}"
+    path: "{{ mntdir_dest.path }}"
+    state: unmounted
+    opts: loop
+  changed_when: false
+  become: yes
+
+- name: remove temporary mount directory
+  file:
+    path: "{{ mntdir_dest.path }}"
+    state: absent
+  become: yes
+  changed_when: false
+
+- name: remove temporary mount fstab
+  file:
+    path: "{{ mntfile_dest.path }}"
+    state: absent
+  become: yes
+  changed_when: false
 
 - name: check isolinux configuration file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"

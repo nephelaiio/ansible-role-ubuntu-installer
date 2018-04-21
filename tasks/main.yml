@@ -56,7 +56,7 @@
 
 - name: mount centos source iso
   mount:
-    src: "{{ iso_path }}" 
+    src: "{{ iso_path }}"
     path: "{{ mntdir_dest.path }}"
     state: mounted
     opts: loop

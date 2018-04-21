@@ -1,7 +1,0 @@
----
-- name: Converge
-  hosts: all
-  vars:
-    ubuntu_installer_image_url: http://archive.ubuntu.com/ubuntu/dists/xenial/main/installer-amd64/current/images/netboot/mini.iso
-  roles:
-    - role: ubuntu-installer

@@ -27,16 +27,16 @@
 
 - name: register source ubuntu url
   set_fact:
-    src_url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
+    iso_url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
 
 - name: register source ubuntu iso file
   set_fact:
-    src_iso: "{{ ubuntu_installer_target_dir }}/ubuntu.{{ ubuntu_installer_release }}.iso"
+    iso_path: "{{ ubuntu_installer_target_dir }}/ubuntu.{{ ubuntu_installer_release }}.iso"
 
 - name: fetch ubuntu source iso
   get_url:
-    url: "{{ ubuntu_installer_image_url | default(src_url) }}"
-    dest: "{{ src_iso }}"
+    url: "{{ ubuntu_installer_image_url | default(iso_url) }}"
+    dest: "{{ iso_path }}"
 
 - name: create temporary mount fstab
   tempfile:
@@ -50,7 +50,7 @@
     prefix: mnt
   register: mntdir_dest
 
-- name: mount centos source iso
+- name: mount ubuntu source iso
   mount:
     src: "{{ iso_path }}"
     path: "{{ mntdir_dest.path }}"
@@ -65,7 +65,7 @@
     recursive: yes
   delegate_to: "{{ inventory_hostname }}"
 
-- name: unmount centos source iso
+- name: unmount ubuntu source iso
   mount:
     src: "{{ iso_path }}"
     path: "{{ mntdir_dest.path }}"
@@ -124,6 +124,11 @@
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
   register: isolinux_bootdest
   changed_when: false
+
+- debug:
+    var: isolinux_bootdest
+
+- pause:
 
 - name: set bootloader preseed configuration
   template:

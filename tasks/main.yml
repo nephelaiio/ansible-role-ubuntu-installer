@@ -125,11 +125,6 @@
   register: isolinux_bootdest
   changed_when: false
 
-- debug:
-    var: isolinux_bootdest
-
-- pause:
-
 - name: set bootloader preseed configuration
   template:
     src: isolinux.txt.j2

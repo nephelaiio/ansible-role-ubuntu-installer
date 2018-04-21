@@ -12,7 +12,6 @@ install:
 
 script:
   - molecule test --scenario-name default
-  - molecule test --scenario-name netinstall
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

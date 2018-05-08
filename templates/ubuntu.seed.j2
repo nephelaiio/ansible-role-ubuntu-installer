@@ -79,7 +79,7 @@ d-i partman-auto-lvm/no_boot                                boolean     true
 d-i partman-md/device_remove_md                             boolean     true
 d-i partman-md/confirm                                      boolean     true
 d-i partman-md/confirm_nooverwrite                          boolean     true
-d-i partman-auto/method                                     string      lvm
+d-i partman-auto/method                                     string      {{ partman_method }}
 d-i partman-auto-lvm/guided_size                            string      max
 d-i partman-partitioning/confirm_write_new_label            boolean     true
 

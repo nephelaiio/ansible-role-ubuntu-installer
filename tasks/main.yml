@@ -114,6 +114,7 @@
     halt: "{{ ubuntu_installer_halt | default('false') }}"
     mirror: "{{ ubuntu_mirror }}"
     security_mirror: "{{ ubuntu_security_mirror }}"
+    partman_method: "{{ ubuntu_partman_method }}"
 
 - name: retrieve seed file checksum
   command: "md5sum {{ tmpdir_dest.path }}/{{ seed_file }}"

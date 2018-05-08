@@ -63,7 +63,6 @@
     src: "{{ mntdir_dest.path }}/"
     dest: "{{ tmpdir_dest.path }}/"
     recursive: yes
-  delegate_to: "{{ inventory_hostname }}"
 
 - name: unmount ubuntu source iso
   mount:

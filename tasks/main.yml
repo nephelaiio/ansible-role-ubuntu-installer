@@ -59,10 +59,9 @@
     fstype: iso9660
 
 - name: extract source iso files
-  synchronize:
-    src: "{{ mntdir_dest.path }}/"
-    dest: "{{ tmpdir_dest.path }}/"
-    recursive: yes
+  command: "cp -a {{ mntdir_dest.path }} {{ tmpdir_dest.path }}"
+  args:
+    warn: no
 
 - name: unmount ubuntu source iso
   mount:

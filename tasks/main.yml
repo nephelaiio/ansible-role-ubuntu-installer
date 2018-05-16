@@ -59,7 +59,7 @@
     fstype: iso9660
 
 - name: extract source iso files
-  command: "cp -a {{ mntdir_dest.path }} {{ tmpdir_dest.path }}"
+  command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
   args:
     warn: no
   tags:

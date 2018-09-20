@@ -9,7 +9,7 @@ ubuntu_installer_package_state: present
 
 ubuntu_installer_target_dir: "/tmp"
 
-ubuntu_installer_release: 16.04.3
+ubuntu_installer_release: 16.04.5
 
 ubuntu_installer_hostname: host.example.com
 
@@ -39,3 +39,5 @@ ubuntu_security_mirror: security.ubuntu.com
 ubuntu_seed_file: ubuntu.seed
 
 ubuntu_partman_method: lvm
+
+ubuntu_ntp_server: pool.ntp.org

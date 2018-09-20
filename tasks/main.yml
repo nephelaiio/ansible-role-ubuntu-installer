@@ -115,6 +115,7 @@
     mirror: "{{ ubuntu_mirror }}"
     security_mirror: "{{ ubuntu_security_mirror }}"
     partman_method: "{{ ubuntu_partman_method }}"
+    ntp_server: "{{ ubuntu_ntp_server }}"
 
 - name: retrieve seed file checksum
   command: "md5sum {{ tmpdir_dest.path }}/{{ seed_file }}"

@@ -41,5 +41,3 @@ ubuntu_seed_file: ubuntu.seed
 ubuntu_partman_method: lvm
 
 ubuntu_ntp_server: pool.ntp.org
-
-ubuntu_installer_become: no

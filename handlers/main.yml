@@ -1,7 +1,0 @@
----
-# - name: restart ubuntu-installer
-#   become: yes
-#   service:
-#     name: "{{ item }}"
-#     state: restarted
-#   with_items: "{{ ubuntu_installer_service_names }}"

@@ -127,11 +127,27 @@
   register: isolinux_bootdest
   changed_when: false
 
+- name: check vmlinuz boot file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name vmlinuz -type f"
+  register: vmlinuz_bootdest
+  changed_when: false
+
+- name: check initrd boot file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name initrd.gz -type f"
+  register: initrd_bootdest
+  changed_when: false
+
+- name: compute isolinux file locations
+  set_fact:
+    vmlinuz_path: "{{ vmlinuz_bootdest.stdout | regex_replace(tmpdir_dest.path, '') }}"
+    initrd_path: "{{ initrd_bootdest.stdout | regex_replace(tmpdir_dest.path, '') }}"
+
 - name: set bootloader preseed configuration
   template:
     src: isolinux.txt.j2
     dest: "{{ isolinux_bootdest.stdout }}"
   vars:
+    kernel_path: "{{ vmlinuz_path }}"
     preseed_url: "{{ ubuntu_preseed_url | default('') }}"
     preseed_file: "{{ seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"

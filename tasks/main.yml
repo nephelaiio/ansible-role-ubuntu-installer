@@ -168,7 +168,7 @@
     isolinux_cat: "{{ isolinux_bootcatdest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
 
 - name: create ubuntu autoinstall iso
-  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b {{ isolinux_bin }} -c {{ isolinux_cat }} -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ." # yamllint disable-line rule:line-length rule:comments
+  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b {{ isolinux_bin }} -c {{ isolinux_cat }} -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ." # yamllint disable-line
   args:
     chdir: "{{ tmpdir_dest.path }}"
   vars:

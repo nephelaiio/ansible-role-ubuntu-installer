@@ -17,7 +17,6 @@ scenario:
   test_sequence:
     - dependency
     - syntax
-    - lint
 verifier:
   name: testinfra
   lint:

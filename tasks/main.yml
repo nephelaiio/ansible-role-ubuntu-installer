@@ -174,6 +174,8 @@
   vars:
     mkisofs_options: "-J -r -l -cache-inodes -joliet-long -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4"
   changed_when: false
+  tags:
+    - skip_ansible_lint
 
 - name: make iso bootable
   command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"

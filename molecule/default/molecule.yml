@@ -3,15 +3,14 @@ dependency:
   name: galaxy
 driver:
   name: docker
-lint:
-  name: yamllint
+lint: |
+  yamllint .
+  ansible-lint .
 platforms:
   - name: ubuntu
     image: ubuntu:xenial
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
 scenario:
   name: default
   test_sequence:
@@ -19,5 +18,3 @@ scenario:
     - syntax
 verifier:
   name: testinfra
-  lint:
-    name: flake8

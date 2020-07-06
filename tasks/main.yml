@@ -1,6 +1,6 @@
 ---
 - name: include variable overrides
-  include_vars: "{{ lookup('first_found', files=lookup_files) }}"
+  include_vars: "{{ lookup('first_found', lookup_files) }}"
   vars:
     lookup_files:
       - "vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"

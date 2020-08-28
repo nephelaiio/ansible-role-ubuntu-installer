@@ -133,7 +133,7 @@
   changed_when: false
 
 - name: check initrd boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name initrd.gz -type f"
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name initrd -type f"
   register: initrd_bootdest
   changed_when: false
 
@@ -147,7 +147,8 @@
     src: isolinux.txt.j2
     dest: "{{ isolinux_bootdest.stdout }}"
   vars:
-    kernel_path: "{{ vmlinuz_path }}"
+    kernel_file: "{{ vmlinuz_path }}"
+    initrd_file: "{{ initrd_path }}"
     preseed_url: "{{ ubuntu_preseed_url | default('') }}"
     preseed_file: "{{ seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"

@@ -1,9 +1,9 @@
 default preseed
 label preseed
   menu label ^Auto Install Ubuntu Server
-  kernel {{ kernel_path }}
+  kernel {{ kernel_file }}
 {% if preseed_url != '' %}
-  append preseed/url={{ preseed_file}} auto=true priority=high vga=788 initrd={{ initrd_path }} quiet ---
+  append preseed/url={{ preseed_file }} auto=true priority=high vga=788 initrd={{ initrd_file }} quiet ---
 {% else %}
-  append preseed/file=/cdrom/{{ preseed_file}} preseed/file/checksum={{ preseed_checksum }} auto=true priority=high vga=788 initrd={{ initrd_path }} quiet ---
+  append preseed/file=/cdrom/{{ preseed_file }} preseed/file/checksum={{ preseed_checksum }} auto=true priority=high vga=788 initrd={{ initrd_file }} quiet ---
 {% endif %}

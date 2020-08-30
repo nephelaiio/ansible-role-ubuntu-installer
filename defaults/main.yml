@@ -38,8 +38,6 @@ ubuntu_mirror: archive.ubuntu.com
 
 ubuntu_security_mirror: security.ubuntu.com
 
-ubuntu_seed_file: ubuntu.seed
-
 ubuntu_partman_method: lvm
 
 ubuntu_ntp_server: pool.ntp.org

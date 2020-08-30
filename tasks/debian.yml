@@ -1,17 +1,12 @@
-- name: check isolinux configuration file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
-  register: isolinux_cfgdest
-  changed_when: false
-
 - name: configure isolinux
   lineinfile:
-    path: "{{ isolinux_cfgdest.stdout }}"
+    path: "{{ tmpdir_dest.path }}/isolinux/isolinux.cfg"
     regexp: 'timeout\s+[0-9]+'
     line: 'timeout 1'
 
 - name: register seed file
   set_fact:
-    seed_file: "{{ ubuntu_seed_file }}"
+    seed_file: ubuntu.seed
 
 - name: create seed file
   template:
@@ -39,54 +34,19 @@
   register: seed_md5sum
   changed_when: false
 
-- name: check isolinux boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
-  register: isolinux_bootdest
-  changed_when: false
-
-- name: check vmlinuz boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name vmlinuz -type f"
-  register: vmlinuz_bootdest
-  changed_when: false
-
-- name: check initrd boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name initrd -type f"
-  register: initrd_bootdest
-  changed_when: false
-
-- name: compute isolinux file locations
-  set_fact:
-    vmlinuz_path: "{{ vmlinuz_bootdest.stdout | regex_replace(tmpdir_dest.path, '') }}"
-    initrd_path: "{{ initrd_bootdest.stdout | regex_replace(tmpdir_dest.path, '') }}"
-
 - name: set bootloader preseed configuration
   template:
     src: isolinux.debian.txt.j2
-    dest: "{{ isolinux_bootdest.stdout }}"
+    dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
   vars:
-    kernel_file: "{{ vmlinuz_path }}"
-    initrd_file: "{{ initrd_path }}"
+    kernel_file: /casper/vmlinuz
+    initrd_file: /casper/initrd
     preseed_url: "{{ ubuntu_preseed_url | default('') }}"
     preseed_file: "{{ seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"
 
-- name: check isolinux bin file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
-  register: isolinux_bindest
-  changed_when: false
-
-- name: check isolinux boot cat file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name boot.cat"
-  register: isolinux_bootcatdest
-  changed_when: false
-
-- name: compute isolinux bin
-  set_fact:
-    isolinux_bin: "{{ isolinux_bindest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
-    isolinux_cat: "{{ isolinux_bootcatdest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
-
 - name: create ubuntu autoinstall iso
-  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b {{ isolinux_bin }} -c {{ isolinux_cat }} -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."
+  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c -c isolinux/boot.cat-o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."
   args:
     chdir: "{{ tmpdir_dest.path }}"
   vars:

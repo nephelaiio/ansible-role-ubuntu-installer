@@ -111,6 +111,8 @@ echo "ARRAY <ignore> devices={{ disk }}" >> /target/etc/mdadm/mdadm.conf; \
 {% endif %}
 in-target chown -R {{ username }}:{{ username }} /home/{{ username }}/.ssh; \
 in-target apt-get update; \
-in-target apt-get install -y python python3 python-apt python3-apt aptitude; \
+{% if packages != [] %}
+in-target apt-get install -y {{ packages | join(' ') }}; \
+{% endif %}
 in-target update-grub;
 {% endif %}

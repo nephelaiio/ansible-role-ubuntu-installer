@@ -1,6 +1,0 @@
----
-ubuntu_installer_packages_default:
-  - syslinux
-  - syslinux-utils
-  - openssh-client
-  - genisoimage

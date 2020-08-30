@@ -8,7 +8,7 @@ lint: |
   ansible-lint .
 platforms:
   - name: ubuntu
-    image: ubuntu:xenial
+    image: ubuntu:bionic
 provisioner:
   name: ansible
 scenario:

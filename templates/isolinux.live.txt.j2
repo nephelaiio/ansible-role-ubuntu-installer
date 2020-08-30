@@ -1,0 +1,5 @@
+default preseed
+label preseed
+  menu label ^Auto Install Ubuntu Server
+  kernel {{ kernel_file }}
+  append autoinstall initrd={{ initrd_file }} quiet ds=nocloud;s=/cdrom{{ nocloud_dir }}/ ---

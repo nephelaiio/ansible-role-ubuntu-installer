@@ -1,0 +1,46 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: en
+    variant: us
+  network:
+    network:
+      version: 2
+      ethernets:
+        {{ interface_name }}:
+          dhcp4: {{ interface.static | default('yes') }}
+          dhcp6: {{ interface.static | default('yes') }}
+{% if interface.static | default('no') | bool %}
+          addresses:
+            - {{ interface.ipaddress }}/{{ interface_prefix }}
+          gateway4: {{ interface.gateway }}
+          nameservers:
+            addresses: [ {{ interface.nameservers | join(',') }} ]
+{% endif %}
+  storage:
+    layout:
+      name: lvm
+{% if disk != '' %}
+      match:
+        path: {{ disk }}
+{% endif %}
+  apt:
+    primary:
+      - arches: [default]
+        uri: http://{{ mirror }}/ubuntu/
+  identity:
+    hostname: {{ fqdn }}
+    username: {{ ssh_user }}
+    password: {{ ssh_pass }}
+  ssh:
+    install-server: yes
+    authorized-keys:
+      - {{ ssh_key }}
+  packages: [ {{ packages | join(',')}} ]
+  user-data:
+    disable_root: false
+  late-commands:
+    - curtin in-target --target=/target -- echo 'ARRAY <ignore> devices=/dev/sda' >> /etc/mdadm/mdadm.conf
+    - curtin in-target --target=/target -- echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/{{ ssh_user }}

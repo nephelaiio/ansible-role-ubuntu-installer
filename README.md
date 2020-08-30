@@ -39,10 +39,10 @@ The following example will create an unattended iso for deploying vm.nephelai.io
     ubuntu_installer_disk: /dev/sda
     ubuntu_installer_interface:
       static: true
-        ipaddress: 10.40.0.22
-        netmask: 255.255.255.0
-        gateway: 10.40.0.254
-        nameservers: 8.8.8.8 8.8.4.8.8.8.8 8.8.4.4
+      ipaddress: 10.40.0.22
+      netmask: 255.255.255.0
+      gateway: 10.40.0.254
+      nameservers: 8.8.8.8 8.8.4.8.8.8.8 8.8.4.4
 ```
 
 It has been tested on ESXi6.5 with a VM with default settings for Ubuntu
@@ -52,10 +52,9 @@ It has been tested on ESXi6.5 with a VM with default settings for Ubuntu
 Please make sure your environment has [docker](https://www.docker.com) installed in order to run role validation tests. Additional python dependencies are listed in the [requirements file](/requirements.txt)
 
 Role is tested against the following distributions (docker images):
-  * Ubuntu Xenial
-  * CentOS 7
-  * Debian Stretch
-  * Arch Linux
+  * Ubuntu Bionic
+  
+It's designed to work on any recent Ubuntu release
 
 You can test the role directly from sources using command ` molecule test `
 

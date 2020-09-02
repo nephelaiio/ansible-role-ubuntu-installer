@@ -10,8 +10,8 @@ autoinstall:
       version: 2
       ethernets:
         {{ interface_name }}:
-          dhcp4: {{ interface.static | default('yes') }}
-          dhcp6: {{ interface.static | default('yes') }}
+          dhcp4: {{ not (interface.static | default('yes')) }}
+          dhcp6: {{ not (interface.static | default('yes')) }}
 {% if interface.static | default('no') | bool %}
           addresses:
             - {{ interface.ipaddress }}/{{ interface_prefix }}

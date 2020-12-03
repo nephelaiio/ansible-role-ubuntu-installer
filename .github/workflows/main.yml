@@ -35,15 +35,14 @@ jobs:
         run: |
           yamllint .
           ansible-lint
+
   molecule:
     name: Molecule
     runs-on: ubuntu-latest
     strategy:
       matrix:
         distro:
-          - ubuntu1804
           - ubuntu2004
-
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2

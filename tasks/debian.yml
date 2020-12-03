@@ -1,3 +1,4 @@
+---
 - name: configure isolinux
   lineinfile:
     path: "{{ tmpdir_dest.path }}/isolinux/isolinux.cfg"
@@ -58,4 +59,3 @@
 - name: make iso bootable
   command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
   changed_when: false
-

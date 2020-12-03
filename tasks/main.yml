@@ -82,7 +82,8 @@
     path: "{{ mntfile_dest.path }}"
     state: absent
 
-- fail:
+- name: validate iso installer type
+  fail:
     msg: "{{ ubuntu_installer_type }} must be one of ['debian', 'live']"
   when: ubuntu_installer_type not in ['debian', 'live']
 

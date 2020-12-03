@@ -69,7 +69,7 @@
   mount:
     src: "{{ iso_path }}"
     path: "{{ mntdir_dest.path }}"
-    state: unmounted
+    state: absent
     opts: loop
 
 - name: remove temporary mount directory

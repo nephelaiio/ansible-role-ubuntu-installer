@@ -1,5 +1,6 @@
 ---
 galaxy_info:
+  role_name: ubuntu-installer
   author: Ted Cook
   description: An Ansible role to create Ubuntu auto install images
   license: MIT

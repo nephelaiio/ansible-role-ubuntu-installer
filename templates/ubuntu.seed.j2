@@ -21,7 +21,7 @@ d-i netcfg/disable_autoconfig                               boolean     true
 d-i netcfg/get_ipaddress                                    string      {{ interface.ipaddress }}
 d-i netcfg/get_netmask                                      string      {{ interface.netmask }}
 d-i netcfg/get_gateway                                      string      {{ interface.gateway }}
-d-i netcfg/get_nameservers                                  string      {{ interface.nameservers }}
+d-i netcfg/get_nameservers                                  string      {{ interface.nameservers | join(' ') }}
 d-i netcfg/confirm_static                                   boolean     true
 {% endif %}
 d-i netcfg/dhcp_timeout                                     string      5

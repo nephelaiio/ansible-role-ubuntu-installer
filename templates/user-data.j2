@@ -42,5 +42,5 @@ autoinstall:
   user-data:
     disable_root: false
   late-commands:
-    - curtin in-target --target=/target -- echo 'ARRAY <ignore> devices=/dev/sda' >> /etc/mdadm/mdadm.conf
-    - curtin in-target --target=/target -- echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/{{ ssh_user }}
+    - curtin in-target -- echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/{{ ssh_user }}
+    - curtin in-target -- echo 'ARRAY <ignore> devices=/dev/sda' >> /etc/mdadm/mdadm.conf

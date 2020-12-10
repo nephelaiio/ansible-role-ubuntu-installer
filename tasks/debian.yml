@@ -60,7 +60,7 @@
     src: isolinux.debian.txt.j2
     dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
   vars:
-    kernel_file: "{{ vmlinux_path }}"
+    kernel_file: "{{ vmlinuz_path }}"
     initrd_file: "{{ initrd_path }}"
     preseed_url: "{{ ubuntu_preseed_url | default('') }}"
     preseed_file: "{{ seed_file }}"

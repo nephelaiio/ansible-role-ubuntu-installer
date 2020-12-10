@@ -47,7 +47,7 @@
     preseed_checksum: "{{ seed_md5sum.stdout | split_with(' ') | first }}"
 
 - name: create ubuntu autoinstall iso
-  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c -c isolinux/boot.cat -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."
+  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."
   args:
     chdir: "{{ tmpdir_dest.path }}"
   vars:

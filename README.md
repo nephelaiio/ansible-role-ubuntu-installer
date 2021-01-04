@@ -1,6 +1,6 @@
 # nephelaiio.ubuntu-installer
 
-[![Build Status](https://github.com/nephelaiio/ansible-role-ubuntu-installer/workflows/.github/workflows/main.yml/badge.svg)](https://travis-ci.org/nephelaiio/ansible-role-ubuntu-installer)
+[![Build Status](https://github.com/nephelaiio/ansible-role-ubuntu-installer/workflows/CI/badge.svg)](https://github.com/nephelaiio/ansible-role-ubuntu-installer/actions)
 [![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-nephelaiio.ubuntu-installer-blue.svg)](https://galaxy.ansible.com/nephelaiio/ubuntu-installer/)
 
 An [ansible role](https://galaxy.ansible.com/nephelaiio/ubuntu-installer) to generate unattended installation isos for Ubuntu server.
@@ -16,7 +16,7 @@ The following example will create an unattended iso for deploying nuc.nephelai.i
 ```
 - hosts: localhost
   roles:
-     - role: nephelaiio.ubuntu-installer
+     - role: nephelaiio.ubuntu_installer
   vars:
     ubuntu_installer_release: 16.04.3
     ubuntu_installer_hostname: nuc.nephelai.io
@@ -31,7 +31,7 @@ The following example will create an unattended iso for deploying vm.nephelai.io
 ```
 - hosts: localhost
   roles:
-     - role: nephelaiio.ubuntu-installer
+     - role: nephelaiio.ubuntu_installer
   vars:
     ubuntu_installer_release: 17.10
     ubuntu_installer_hostname: vm.nephelai.io

@@ -1,1 +1,2 @@
-../../requirements.yml
+---
+- src: nephelaiio.plugins

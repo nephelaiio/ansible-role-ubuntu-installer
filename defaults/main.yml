@@ -1,5 +1,11 @@
 ---
-# ubuntu_installer_packages: defaults per os family
+# ubuntu_installer_packages: define to override installation packages
+ubuntu_installer_packages_default:
+  debian:
+    - syslinux
+    - syslinux-utils
+    - openssh-client
+    - genisoimage
 
 # ubuntu_installer_image_url: define to override the ubuntu iso location (e.g. when using a local proxy)
 

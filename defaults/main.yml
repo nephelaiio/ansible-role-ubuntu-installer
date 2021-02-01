@@ -1,55 +1,34 @@
 ---
 # ubuntu_installer_packages: define to override installation packages
+# ubuntu_installer_image_url: define to override the ubuntu iso location (e.g. when using a local proxy)
+# ubuntu_preseed_url: define to force netbooting
+# ubuntu_installer_username:  # required
+# ubuntu_installer_password:  # required
+# ubuntu_installer_sshkey:  # required
+#
+ubuntu_installer_late_command: ''  # override seed file late command
+ubuntu_installer_disk: ''  # override seed file disk autodetection
 ubuntu_installer_packages_default:
   debian:
     - syslinux
     - syslinux-utils
     - openssh-client
     - genisoimage
-
-# ubuntu_installer_image_url: define to override the ubuntu iso location (e.g. when using a local proxy)
-
-# ubuntu_preseed_url: define to force netbooting
-
 ubuntu_installer_package_state: present
-
 ubuntu_installer_target_dir: "/tmp"
-
-ubuntu_installer_release: 16.04.5
-
+ubuntu_installer_release: 20.04.1
 ubuntu_installer_hostname: host.example.com
-
 ubuntu_installer_timezone: America/Costa_Rica
-
-# ubuntu_installer_username:  # required
-
-# ubuntu_installer_password:  # required
-
-# ubuntu_installer_sshkey:  # required
-
-# ubuntu_installer_late_command:  # override seed file late command
-
 ubuntu_installer_interface:  # override seed file network autoconfiguration
   static: false
-
 ubuntu_installer_interface_name: eno1  # should probably be overriden
-
-# ubuntu_installer_disk:  # override seed file disk autodetection
-
-ubuntu_installer_halt: false  # true | false
-
+ubuntu_installer_halt: false
+ubuntu_installer_poweroff: false
 ubuntu_seed_template: ubuntu.seed.j2
-
 ubuntu_mirror: archive.ubuntu.com
-
 ubuntu_security_mirror: security.ubuntu.com
-
-ubuntu_partman_method: lvm
-
+ubuntu_partman_method: lvm  # [(lvm)|(regular)|(crypto)]
 ubuntu_ntp_server: pool.ntp.org
-
 ubuntu_installer_cloudinit: /nocloud
-
 ubuntu_installer_type: "{{ ubuntu_installer_image_url | urlsplit('path') | basename | regex_search('(live)') | ternary('live', 'debian') }}"  # live | debian
-
 ubuntu_installer_image_packages: []

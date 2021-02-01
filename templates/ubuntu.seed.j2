@@ -93,7 +93,7 @@ d-i finish-install/reboot_in_progress                       note
 d-i finish-install/keep-consoles                            boolean     false
 d-i cdrom-detect/eject                                      boolean     true
 d-i debian-installer/exit/halt                              boolean     {{ halt }}
-d-i debian-installer/exit/poweroff                          boolean     {{ halt }}
+d-i debian-installer/exit/poweroff                          boolean     {{ poweroff }}
 
 {% if late_command != '' %}
 d-i preseed/late_command                                    string      {{ late_command }}

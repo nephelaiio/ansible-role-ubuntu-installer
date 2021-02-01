@@ -26,10 +26,14 @@ autoinstall:
       match:
         path: {{ disk }}
 {% endif %}
+{% %}
   apt:
     primary:
       - arches: [default]
-        uri: http://{{ mirror }}/ubuntu/
+        uri: http://{{ mirror_primary }}/ubuntu/
+    security:
+      - arches: [default]
+        uri: http://{{ mirror_security }}/ubuntu/
   identity:
     hostname: {{ fqdn }}
     username: {{ ssh_user }}

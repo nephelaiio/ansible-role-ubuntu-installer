@@ -37,9 +37,10 @@
     fqdn: "{{ ubuntu_installer_hostname }}"
     interface: "{{ ubuntu_installer_interface }}"
     interface_name: "{{ ubuntu_installer_interface_name }}"
-    interface_prefix: "{{ ubuntu_installer_interface_prefix | default('24') }}"
+    interface_prefix: "{{ ubuntu_installer_interface_prefix }}"
     disk: "{{ ubuntu_installer_disk | default('') }}"
-    mirror: "{{ ubuntu_mirror }}"
+    mirror_primary: "{{ ubuntu_installer_mirror }}"
+    mirror_security: "{{ ubuntu_installer_security_mirror }}"
     packages: "{{ ubuntu_installer_image_packages }}"
 
 - name: create cloud-init meta data

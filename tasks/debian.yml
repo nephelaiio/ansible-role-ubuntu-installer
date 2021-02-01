@@ -11,7 +11,7 @@
 
 - name: create seed file
   template:
-    src: "{{ ubuntu_seed_template }}"
+    src: "{{ ubuntu_installer_seed_template }}"
     dest: "{{ tmpdir_dest.path }}/{{ seed_file }}"
   vars:
     hostname: "{{ ubuntu_installer_hostname | split_with('.') | head }}"
@@ -25,10 +25,10 @@
     disk: "{{ ubuntu_installer_disk }}"
     halt: "{{ ubuntu_installer_halt }}"
     poweroff: "{{ ubuntu_installer_poweroff }}"
-    mirror: "{{ ubuntu_mirror }}"
-    security_mirror: "{{ ubuntu_security_mirror }}"
-    partman_method: "{{ ubuntu_partman_method }}"
-    ntp_server: "{{ ubuntu_ntp_server }}"
+    mirror: "{{ ubuntu_installer_mirror }}"
+    security_mirror: "{{ ubuntu_installer_security_mirror }}"
+    partman_method: "{{ ubuntu_installer_partman_method }}"
+    ntp_server: "{{ ubuntu_installer_ntp_server }}"
     packages: "{{ ubuntu_installer_image_packages }}"
 
 - name: retrieve seed file checksum

@@ -24,11 +24,12 @@ ubuntu_installer_interface:  # override seed file network autoconfiguration
 ubuntu_installer_interface_name: eno1  # should probably be overriden
 ubuntu_installer_halt: false
 ubuntu_installer_poweroff: false
-ubuntu_seed_template: ubuntu.seed.j2
-ubuntu_mirror: archive.ubuntu.com
-ubuntu_security_mirror: security.ubuntu.com
-ubuntu_partman_method: lvm  # [(lvm)|(regular)|(crypto)]
-ubuntu_ntp_server: pool.ntp.org
-ubuntu_installer_cloudinit: /nocloud
-ubuntu_installer_type: "{{ ubuntu_installer_image_url | urlsplit('path') | basename | regex_search('(live)') | ternary('live', 'debian') }}"  # live | debian
+ubuntu_installer_seed_template: ubuntu.seed.j2
+ubuntu_installer_mirror: archive.ubuntu.com
 ubuntu_installer_image_packages: []
+ubuntu_installer_security_mirror: security.ubuntu.com
+ubuntu_installer_type: "{{ ubuntu_installer_image_url | urlsplit('path') | basename | regex_search('(live)') | ternary('live', 'debian') }}"  # live | debian
+
+ubuntu_installer_partman_method: lvm  # [(lvm)|(regular)|(crypto)]
+ubuntu_installer_ntp_server: pool.ntp.org   # only supported for ubuntu_installer_type == 'debian'
+ubuntu_installer_cloudinit: /nocloud  # only supported for ubuntu_installer_type == 'live'

@@ -22,6 +22,7 @@ ubuntu_installer_timezone: America/Costa_Rica
 ubuntu_installer_interface:  # override seed file network autoconfiguration
   static: false
 ubuntu_installer_interface_name: eno1  # should probably be overriden
+ubuntu_installer_interface_prefix: 24
 ubuntu_installer_halt: false
 ubuntu_installer_poweroff: false
 ubuntu_installer_seed_template: ubuntu.seed.j2
@@ -29,7 +30,117 @@ ubuntu_installer_mirror: archive.ubuntu.com
 ubuntu_installer_image_packages: []
 ubuntu_installer_security_mirror: security.ubuntu.com
 ubuntu_installer_type: "{{ ubuntu_installer_image_url | urlsplit('path') | basename | regex_search('(live)') | ternary('live', 'debian') }}"  # live | debian
-
-ubuntu_installer_partman_method: lvm  # [(lvm)|(regular)|(crypto)]
+ubuntu_installer_partman_method: lvm  # [(lvm)|(regular)]
 ubuntu_installer_ntp_server: pool.ntp.org   # only supported for ubuntu_installer_type == 'debian'
 ubuntu_installer_cloudinit: /nocloud  # only supported for ubuntu_installer_type == 'live'
+
+__ubuntu_installer_live_storage_map:
+  lvm: lvm
+  regular: direct
+
+# override storage configuration with ubuntu_installer_live_storage parameter
+__ubuntu_installer_live_storage:
+  regular:
+    - ptable: gpt
+      grub_device: true
+      type: disk
+      id: disk0
+
+    - device: disk0
+      size: 1MB
+      flag: bios_grub
+      type: partition
+      id: bios_boot_partition
+
+    - device: disk0
+      size: 1G
+      wipe: superblock
+      type: partition
+      id: boot_partition
+
+    - device: disk0
+      size: -1
+      wipe: superblock
+      type: partition
+      id: root_partition
+
+    - fstype: ext4
+      volume: boot-partition
+      type: format
+      id: boot-fs
+
+    - fstype: ext4
+      volume: root_partition
+      type: format
+      id: boot-fs
+
+    - device: boot-fs
+      path: /boot
+      type: mount
+      id: boot-mount
+
+    - device: root-fs
+      path: /
+      type: mount
+      id: root-mount
+
+  lvm:
+    - ptable: gpt
+      wipe: superblock
+      grub_device: true
+      type: disk
+      id: disk0
+
+    - device: disk0
+      size: 1MB
+      flag: bios_grub
+      type: partition
+      id: bios_boot_partition
+
+    - device: disk0
+      size: 1GB
+      wipe: superblock
+      type: partition
+      id: boot_partition
+
+    - fstype: ext4
+      volume: boot_partition
+      preserve: false
+      type: format
+      id: boot_fs
+
+    - device: disk0
+      size: -1
+      wipe: superblock
+      type: partition
+      id: root_pv
+
+    - name: ubuntu-vg
+      devices:
+        - root_pv
+      preserve: false
+      type: lvm_volgroup
+      id: root_vg
+
+    - name: ubuntu-lv
+      volgroup: root_vg
+      size: 100%
+      preserve: false
+      type: lvm_partition
+      id: root_lv
+
+    - fstype: ext4
+      volume: root_lv
+      preserve: false
+      type: format
+      id: root_fs
+
+    - device: format-0
+      path: /boot
+      type: mount
+      id: boot_mount
+
+    - device: root_fs
+      path: /
+      type: mount
+      id: root_mount

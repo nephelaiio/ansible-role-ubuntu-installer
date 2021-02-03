@@ -21,12 +21,13 @@ autoinstall:
 {% endif %}
   storage:
     layout:
-      name: lvm
+      name: "{{ storage_layout }}"
 {% if disk != '' %}
       match:
         path: {{ disk }}
 {% endif %}
-{% %}
+    config:
+      {{ storage_config | to_nice_yaml(indent=2) | indent(6) }}
   apt:
     primary:
       - arches: [default]

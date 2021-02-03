@@ -42,6 +42,8 @@
     mirror_primary: "{{ ubuntu_installer_mirror }}"
     mirror_security: "{{ ubuntu_installer_security_mirror }}"
     packages: "{{ ubuntu_installer_image_packages }}"
+    storage_layout: "{{ __ubuntu_installer_live_storage_map[ubuntu_installer_partman_method] }}"
+    storage_config: "{{ ubuntu_installer_live_storage | default(__ubuntu_installer_live_storage[ubuntu_installer_partman_method]) }}"
 
 - name: create cloud-init meta data
   file:

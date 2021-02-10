@@ -11,14 +11,13 @@ platforms:
   - name: instance
 provisioner:
   name: ansible
-  log: true
   playbooks:
     converge: ../converge.yml
     verify: ../verify.yml
   inventory:
     group_vars:
       all:
-        kvm_enabled: true
+        kvm_enabled: false
 verifier:
   name: ansible
 scenario:

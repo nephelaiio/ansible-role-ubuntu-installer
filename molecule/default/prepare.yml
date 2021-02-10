@@ -9,6 +9,7 @@
     - ../vars.yml
 
   tasks:
+
     - name: install python3
       apt:
         name: python3

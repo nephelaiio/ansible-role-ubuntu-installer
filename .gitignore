@@ -5,3 +5,6 @@ __pycache__/
 Gemfile.lock
 **/.ropeproject
 playbook.retry
+**/*.iso
+**/*.img
+**/id_rsa*

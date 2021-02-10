@@ -1,5 +1,56 @@
 ---
 - name: Prepare
+
   hosts: all
-  gather_facts: false
-  tasks: []
+
+  become: yes
+
+  vars_files:
+    - ../vars.yml
+
+  tasks:
+    - name: install python3
+      apt:
+        name: python3
+
+    - name: install network manager
+      apt:
+        name: network-manager
+
+    - name: create dummy bridge
+      command: "nmcli con add ifname {{ bridge_name }} type bridge con-name {{ bridge_name }}"
+      failed_when: false
+
+    - name: create dummy interface
+      command: "nmcli con add ifname {{ iface_name }} type dummy con-name {{ iface_name }}"
+      failed_when: false
+
+    - name: create dummy bridge slave
+      command: "nmcli con add type bridge-slave ifname {{ iface_name }} master {{ bridge_name }} con-name {{ bridge_name }}-{{ iface_name }}"
+      failed_when: false
+
+    - name: set bridge interface ip address
+      command: "nmcli con mod {{ bridge_name }} ipv4.addresses {{ bridge_host }}/{{ bridge_prefix }}"
+      failed_when: false
+
+    - name: set bridge interface ip method
+      command: "nmcli con mod {{ bridge_name }} ipv4.method manual"
+
+    - name: stop bridge interface
+      command: "nmcli con down {{ bridge_name }}"
+      failed_when: false
+
+    - name: start bridge interface
+      command: "nmcli con up {{ bridge_name }}"
+      failed_when: false
+
+    - name: install kvm requirements
+      apt:
+        name:
+          - qemu
+          - qemu-kvm
+          - qemu-efi
+          - libvirt-clients
+          - libvirt-daemon-system
+          - libvirt-daemon-system-systemd
+          - python3-libvirt

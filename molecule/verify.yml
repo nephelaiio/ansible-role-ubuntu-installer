@@ -1,0 +1,60 @@
+---
+- name: Add vms to inventory
+
+  hosts: all
+
+  become: yes
+
+  vars_files:
+    - ./vars.yml
+
+  tasks:
+
+    - name: add vm to inventory
+      add_host:
+        name: "{{ vm_hostname }}"
+        groups:
+          - install
+        ansible_host: "{{ vm_address }}"
+        ansible_user: molecule
+        ansible_ssh_private_key_file: "{{ ssh_keypair }}"
+        ansible_ssh_common_args: "-o ProxyCommand=\"ssh -W %h:%p -q {{ ansible_user }}@{{ ansible_default_ipv4.address }}\""
+        partman_method: "{{ vm.ubuntu_partman_method }}"
+      vars:
+        vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
+        vm_address: "{{ vm.ubuntu_installer_interface.ipaddress }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
+
+
+- name: Test vms
+
+  hosts: install
+
+  gather_facts: no
+
+  tasks:
+
+    - name: test connection
+      wait_for_connection:
+        sleep: 10
+
+    - name: root gather partition info
+      shell: "lsblk -l | grep /$"
+      register: lsblk_output
+
+    - name: check static partitioning
+      fail:
+        msg: "regular partitioning failed: {{ lsblk_output.stdout }}"
+      when:
+        - lsblk_output.stdout is not search('part')
+        - partman_method == 'regular'
+
+    - name: check lvm partitioning
+      fail:
+        msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
+      when:
+        - lsblk_output.stdout is not search('lvm')
+        - partman_method == 'lvm'

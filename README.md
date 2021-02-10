@@ -18,7 +18,6 @@ The following example will create an unattended iso for deploying nuc.nephelai.i
   roles:
      - role: nephelaiio.ubuntu_installer
   vars:
-    ubuntu_installer_release: 16.04.3
     ubuntu_installer_hostname: nuc.nephelai.io
     ubuntu_installer_timezone: America/Costa_Rica
     ubuntu_installer_disk: /dev/nvme0n1
@@ -33,7 +32,6 @@ The following example will create an unattended iso for deploying vm.nephelai.io
   roles:
      - role: nephelaiio.ubuntu_installer
   vars:
-    ubuntu_installer_release: 17.10
     ubuntu_installer_hostname: vm.nephelai.io
     ubuntu_installer_timezone: America/Costa_Rica
     ubuntu_installer_disk: /dev/sda

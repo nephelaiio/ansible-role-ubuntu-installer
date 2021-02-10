@@ -13,9 +13,8 @@
 
 - name: install packages
   package:
-    name: "{{ item }}"
+    name: "{{ _ubuntu_installer_packages }}"
     state: "{{ ubuntu_installer_package_state }}"
-  with_items: "{{ ubuntu_installer_packages | default(ubuntu_installer_packages_default) }}"
 
 - name: create temporary target directory
   tempfile:
@@ -28,18 +27,10 @@
     state: directory
     path: "{{ ubuntu_installer_target_dir }}"
 
-- name: register source ubuntu url
-  set_fact:
-    iso_url: "http://releases.ubuntu.com/{{ ubuntu_installer_release }}/ubuntu-{{ ubuntu_installer_release }}-server-amd64.iso"
-
-- name: register source ubuntu iso file
-  set_fact:
-    iso_path: "{{ ubuntu_installer_target_dir }}/ubuntu.{{ ubuntu_installer_release }}.iso"
-
 - name: fetch ubuntu source iso
   get_url:
-    url: "{{ ubuntu_installer_image_url | default(iso_url) }}"
-    dest: "{{ iso_path }}"
+    url: "{{ ubuntu_installer_image_url }}"
+    dest: "{{ ubuntu_installer_iso_path }}"
 
 - name: create temporary mount fstab
   tempfile:
@@ -55,7 +46,7 @@
 
 - name: mount ubuntu source iso
   mount:
-    src: "{{ iso_path }}"
+    src: "{{ ubuntu_installer_iso_path }}"
     path: "{{ mntdir_dest.path }}"
     state: mounted
     opts: loop
@@ -70,7 +61,7 @@
 
 - name: unmount ubuntu source iso
   mount:
-    src: "{{ iso_path }}"
+    src: "{{ ubuntu_installer_iso_path }}"
     path: "{{ mntdir_dest.path }}"
     state: absent
     opts: loop
@@ -85,12 +76,7 @@
     path: "{{ mntfile_dest.path }}"
     state: absent
 
-- name: validate iso installer type
-  fail:
-    msg: "{{ ubuntu_installer_type }} must be one of ['debian', 'live']"
-  when: ubuntu_installer_type not in ['debian', 'live']
-
-- include_tasks: "{{ ubuntu_installer_type }}.yml"
+- include_tasks: live.yml
 
 - name: remove temporary directories
   file:

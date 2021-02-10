@@ -1,0 +1,55 @@
+<domain type='kvm'>
+  <name>{{ vm_hostname }}</name>
+  <memory unit='MiB'>4096</memory>
+  <vcpu>2</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc-1.0'>hvm</type>
+    <boot dev='hd'/>
+    <boot dev='cdrom' />
+  </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='{{ vm_disk_format }}'/>
+      <source file='{{ vm_disk_path }}'/>
+      <target dev='hda' bus='ide'/>
+      <address type='drive' controller='0' bus='0' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <source file='{{ vm_iso }}' />
+      <target dev='hdb' bus='ide' />
+      <readonly />
+    </disk>
+    <controller type='ide' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <input type='mouse' bus='ps2'/>
+    <graphics type='vnc' port='-1' autoport='yes'/>
+    <sound model='ich6'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </sound>
+    <video>
+      <model type='cirrus' vram='9216' heads='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </video>
+    <memballoon model='virtio'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </memballoon>
+    <interface type='bridge'>
+      <source bridge='{{ vm_bridge }}'/>
+      <address type='pci' domain='0x000' bus='0x00' slot='0x03' function='0x0'/>
+      <mac address='{{ vm_mac }}'/>
+    </interface>
+  </devices>
+  <graphics type='vnc' port='-1' autoport='yes'/>
+</domain>

@@ -18,7 +18,7 @@ provisioner:
   inventory:
     group_vars:
       all:
-        kvm_enabled: true
+        kvm_enabled: ${MOLECULE_TEST_KVM:-false}
 verifier:
   name: ansible
 scenario:

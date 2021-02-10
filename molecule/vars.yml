@@ -25,7 +25,7 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_partman_method: lvm
+    ubuntu_installer_partman_method: lvm
   - ubuntu_installer_hostname: focal-static
     ubuntu_installer_ref: focal
     ubuntu_installer_interface:
@@ -37,4 +37,4 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_partman_method: regular
+    ubuntu_installer_partman_method: regular

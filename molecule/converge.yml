@@ -51,7 +51,7 @@
         ubuntu_installer_sshkey: "{{ molecule_keypair.public_key }}"
         ubuntu_installer_halt: false
         ubuntu_installer_interface: "{{ vm.ubuntu_installer_interface }}"
-        ubuntu_installer_partman_method: "{{ vm.ubuntu_partman_method }}"
+        ubuntu_installer_partman_method: "{{ vm.ubuntu_installer_partman_method }}"
       loop_control:
         loop_var: vm
         label: "{{ vm.ubuntu_installer_hostname }}"

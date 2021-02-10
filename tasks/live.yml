@@ -83,6 +83,10 @@
 
 - block:
 
+    - name: fail on unsupported iso
+      fail:
+        msg: "unsupported grub bootloader iso"
+
     - name: gather iso partition info
       parted:
         device: "{{ ubuntu_installer_iso_path }}"
@@ -96,11 +100,6 @@
         loop_var: iso_partition
         label: "{{ efi_partition.name }}"
       when: iso_partition.flags | intersection(['esp'])
-
-    - debug:
-        var: iso_efi_partition
-
-    - fail:
 
     - name: create grub autoinstall iso
       command: " {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso ."

@@ -1,19 +1,7 @@
 ---
-- name: set variable overrides
-  set_fact:
-    _ubuntu_installer_packages: "{{ ubuntu_installer_packages | default(ubuntu_installer_packages_default | sorted_get(overrides)) }}"
-  vars:
-    overrides:
-      - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
-      - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}"
-      - "{{ ansible_distribution | lower }}"
-      - "{{ ansible_os_family | lower }}"
-  tags:
-    - always
-
 - name: install packages
   package:
-    name: "{{ _ubuntu_installer_packages }}"
+    name: "{{ ubuntu_installer_packages }}"
     state: "{{ ubuntu_installer_package_state }}"
 
 - name: create temporary target directory

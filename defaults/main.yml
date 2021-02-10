@@ -8,13 +8,12 @@
 #
 ubuntu_installer_late_command: ''  # override seed file late command
 ubuntu_installer_disk: ''  # override seed file disk autodetection
-ubuntu_installer_packages_default:
-  debian:
-    - syslinux
-    - syslinux-utils
-    - openssh-client
-    - genisoimage
-    - xorriso
+ubuntu_installer_packages:
+  - syslinux
+  - syslinux-utils
+  - openssh-client
+  - genisoimage
+  - xorriso
 ubuntu_installer_package_state: present
 ubuntu_installer_target_dir: "/tmp"
 ubuntu_installer_hostname: host.example.com

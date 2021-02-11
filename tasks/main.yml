@@ -54,6 +54,11 @@
     state: absent
     opts: loop
 
+- name: remove ubuntu source iso
+  file:
+    path: "{{ ubuntu_installer_iso_path }}"
+    state: absent
+
 - name: remove temporary mount directory
   file:
     path: "{{ mntdir_dest.path }}"

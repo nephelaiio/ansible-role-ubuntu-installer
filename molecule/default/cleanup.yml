@@ -41,6 +41,17 @@
         label: "{{ vm.ubuntu_installer_hostname }}"
       loop: "{{ vms }}"
 
+    - name: unmasquerade bridge
+      iptables:
+        table: nat
+        chain: POSTROUTING
+        out_interface: "{{ ansible_default_ipv4.interface }}"
+        source: "{{ bridge_net }}"
+        destination: 0.0.0.0/0
+        jump: MASQUERADE
+        protocol: all
+        state: present
+
     - name: detroy dummy bridge slave
       command: "nmcli con del {{ bridge_name }}-{{ iface_name }}"
       failed_when: false

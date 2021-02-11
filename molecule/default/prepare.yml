@@ -45,6 +45,24 @@
       command: "nmcli con up {{ bridge_name }}"
       failed_when: false
 
+    - name: masquerade bridge
+      iptables:
+        table: nat
+        chain: POSTROUTING
+        out_interface: "{{ ansible_default_ipv4.interface }}"
+        source: "{{ bridge_net }}"
+        destination: 0.0.0.0/0
+        jump: MASQUERADE
+        protocol: all
+        state: present
+
+    - name: enable ipv4 forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        reload: True
+
     - name: install kvm requirements
       apt:
         name:

@@ -77,7 +77,7 @@
       wait_for_connection:
         sleep: 10
 
-    - name: root gather partition info
+    - name: gather partition info
       shell: "lsblk -l | grep /$"
       register: lsblk_output
 

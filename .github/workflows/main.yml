@@ -40,10 +40,6 @@ jobs:
   molecule:
     name: Molecule
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        image:
-          - geerlingguy/docker-ubuntu2004-ansible:latest
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2

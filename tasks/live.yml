@@ -75,7 +75,7 @@
         chdir: "{{ tmpdir_dest.path }}"
       vars:
         mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
-        target_filename: "{{ ubuntu_intaller_target_dir }}/{{ ubuntu_installer_target_filename }}"
+        target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
       changed_when: false
       tags:
         - skip_ansible_lint
@@ -108,7 +108,7 @@
         chdir: "{{ tmpdir_dest.path }}"
       vars:
         mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
-        target_filename: "{{ ubuntu_intaller_target_dir }}/{{ ubuntu_installer_target_filename }}"
+        target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
       changed_when: false
       tags:
         - skip_ansible_lint

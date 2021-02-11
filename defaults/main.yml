@@ -16,6 +16,7 @@ ubuntu_installer_packages:
   - xorriso
 ubuntu_installer_package_state: present
 ubuntu_installer_target_dir: "/tmp"
+ubuntu_installer_target_filename: "{{ ubuntu_installer_hostname }}.iso"
 ubuntu_installer_hostname: host.example.com
 ubuntu_installer_timezone: America/Costa_Rica
 ubuntu_installer_interface:  # override seed file network autoconfiguration

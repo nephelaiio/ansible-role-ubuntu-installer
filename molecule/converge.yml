@@ -1,5 +1,5 @@
 ---
-- name: Spawn vms
+- name: Spawn kvm guests
 
   hosts: all
 
@@ -59,7 +59,7 @@
 
     - block:
 
-        - name: destroy vm
+        - name: destroy kvm guest
           virt:
             command: destroy
             name: "{{ vm.ubuntu_installer_hostname }}"
@@ -69,7 +69,7 @@
           loop: "{{ vms }}"
           failed_when: false
 
-        - name: undefine vm
+        - name: undefine kvm guest
           virt:
             command: undefine
             name: "{{ vm.ubuntu_installer_hostname }}"
@@ -79,7 +79,7 @@
           loop: "{{ vms }}"
           failed_when: false
 
-        - name: destroy disks
+        - name: destroy kvm guest disks
           file:
             path: "{{ vm_disk }}"
             state: absent
@@ -90,7 +90,7 @@
             label: "{{ vm.ubuntu_installer_hostname }}"
           loop: "{{ vms }}"
 
-        - name: create disks
+        - name: create kvm guest disks
           command: "qemu-img create {{ vm_disk }} {{ vm_disk_size }}"
           args:
             creates: "{{ vm_disk }}"
@@ -101,7 +101,7 @@
             label: "{{ vm.ubuntu_installer_hostname }}"
           loop: "{{ vms }}"
 
-        - name: create vm
+        - name: create kvm guest
           virt:
             command: define
             xml: "{{ xml_template }}"
@@ -117,7 +117,7 @@
             label: "{{ vm.ubuntu_installer_hostname }}"
           loop: "{{ vms }}"
 
-        - name: start vm
+        - name: start kvm guest
           virt:
             name: "{{ vm_hostname }}"
             xml: "{{ xml_template }}"

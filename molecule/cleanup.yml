@@ -1,16 +1,41 @@
 ---
-- name: Prepare
+- name: Probe hosts
 
   hosts: all
+
+  gather_facts: no
+
+  tasks:
+
+    - block:
+
+        - name: probe hosts
+          wait_for_connection:
+            timeout: 10
+
+        - name: record online hosts
+          group_by:
+            key: "running_hosts"
+
+      rescue:
+
+        - name: record offline hosts
+          debug:
+            msg: "{{ inventory_hostname }} is offline"
+
+
+- name: Prepare
+
+  hosts: running_hosts
 
   become: yes
 
   vars_files:
-    - ../vars.yml
+    - vars.yml
 
   tasks:
 
-    - name: destroy vm
+    - name: destroy kvm guest
       virt:
         command: destroy
         name: "{{ vm.ubuntu_installer_hostname }}"
@@ -20,7 +45,7 @@
       loop: "{{ vms }}"
       failed_when: false
 
-    - name: undefine vm
+    - name: undefine kvm guest
       virt:
         command: undefine
         name: "{{ vm.ubuntu_installer_hostname }}"
@@ -30,7 +55,7 @@
       loop: "{{ vms }}"
       failed_when: false
 
-    - name: destroy disks
+    - name: destroy kvm guest disks
       file:
         path: "{{ vm_disk }}"
         state: absent
@@ -52,10 +77,10 @@
         protocol: all
         state: present
 
-    - name: detroy dummy bridge slave
-      command: "nmcli con del {{ bridge_name }}-{{ iface_name }}"
-      failed_when: false
-
     - name: destroy dummy bridge
       command: "nmcli con del {{ bridge_name }}"
+      failed_when: false
+
+    - name: detroy dummy interface
+      command: "ip link del {{ iface_name }}"
       failed_when: false

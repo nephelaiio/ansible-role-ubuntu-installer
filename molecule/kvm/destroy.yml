@@ -1,16 +1,9 @@
 ---
-# from https://bit.ly/3p6IA4c
 - name: Destroy
-
   hosts: localhost
-
+  connection: local
+  gather_facts: false
   no_log: "{{ molecule_no_log }}"
-
-  vars:
-
-    molecule_file: "{{ lookup('env', 'MOLECULE_FILE') }}"
-    molecule_yml: "{{ lookup('file', molecule_file) | from_yaml }}"
-
   tasks:
 
     - block:
@@ -24,15 +17,18 @@
 
         - name: Populate instance config when file missing
           set_fact:
-            instance_conf: {}
+            instance_conf: []
             skip_instances: true
 
     - name: Destroy molecule instance(s)
       ec2:
         state: absent
         instance_ids: "{{ item.instance_ids }}"
+        region: "{{ aws_region }}"
       register: server
-      with_items: "{{ instance_conf }}"
+      loop_control:
+        label: "{{ item.instance }}"
+      loop: "{{ instance_conf }}"
       when: not skip_instances
       async: 7200
       poll: 0
@@ -43,7 +39,9 @@
       register: ec2_jobs
       until: ec2_jobs.finished
       retries: 300
-      with_items: "{{ server.results }}"
+      loop_control:
+        label: "{{ item.item.instance }}"
+      loop: "{{ server.results }}"
 
     # Mandatory configuration for Molecule to function.
 
@@ -53,6 +51,6 @@
 
     - name: Dump instance config
       copy:
-        content: "{{ instance_conf | to_json | from_json | to_yaml | header }}"
+        content: "{{ instance_conf | to_json | from_json | to_yaml }}"
         dest: "{{ molecule_instance_config }}"
       when: server.changed | bool

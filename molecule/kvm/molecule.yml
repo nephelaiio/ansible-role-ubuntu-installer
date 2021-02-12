@@ -3,15 +3,12 @@ dependency:
   name: galaxy
 driver:
   name: delegated
-  options:
-    managed: false
-    ansible_connection_options:
-      ansible_connection: local
 platforms:
   - name: instance
+    image: ami-06866e21db8917d18
+    instance_type: a1.metal
 provisioner:
   name: ansible
-  log: true
   playbooks:
     converge: ../converge.yml
     verify: ../verify.yml
@@ -21,6 +18,8 @@ provisioner:
     group_vars:
       all:
         kvm_enabled: ${MOLECULE_TEST_KVM:-true}
+        aws_region: us-east-1
+        aws_subnet_id: subnet-d2a31c8b
 verifier:
   name: ansible
 scenario:

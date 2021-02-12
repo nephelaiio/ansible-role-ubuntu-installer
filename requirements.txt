@@ -1,3 +1,5 @@
 ansible>=2.9.0
 netaddr>=0.8.0
 molecule[ec2]
+boto
+boto3

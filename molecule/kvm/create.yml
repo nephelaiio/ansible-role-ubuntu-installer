@@ -38,8 +38,8 @@
 
     - name: Find the vpc for the subnet
       ec2_vpc_subnet_info:
-        subnet_ids: "{{ aws_subnet_id }}"
         region: "{{ aws_region }}"
+        subnet_ids: "{{ aws_subnet_id }}"
       loop_control:
         label: "{{ item.name }}"
       loop: "{{ molecule_yml.platforms }}"
@@ -47,6 +47,7 @@
 
     - name: Create security groups
       ec2_group:
+        region: "{{ aws_region }}"
         vpc_id: "{{ item.subnets[0].vpc_id }}"
         name: "{{ security_group_name }}"
         description: "{{ security_group_name }}"
@@ -63,12 +64,14 @@
 
     - name: Delete remote key pair
       ec2_key:
+        region: "{{ aws_region }}"
         name: "{{ key_pair_name }}"
         state: absent
       when: not key_pair_local.stat.exists
 
     - name: Create key pair
       ec2_key:
+        region: "{{ aws_region }}"
         name: "{{ key_pair_name }}"
       register: key_pair
 
@@ -81,6 +84,7 @@
 
     - name: Get the ec2 ami(s) by owner and name, if image not set
       ec2_ami_info:
+        region: "{{ aws_region }}"
         owners: "{{ item.image_owner }}"
         filters:
           name: "{{ item.image_name }}"
@@ -92,8 +96,8 @@
 
     - name: Create molecule instance(s)
       ec2:
-        key_name: "{{ key_pair_name }}"
         region: "{{ aws_region }}"
+        key_name: "{{ key_pair_name }}"
         image: "{{ item.image
           if item.image is defined
           else (ami_info.results[index].images | sort(attribute='creation_date', reverse=True))[0].image_id }}"

@@ -22,9 +22,9 @@
 
     - name: Destroy molecule instance(s)
       ec2:
+        region: "{{ aws_region }}"
         state: absent
         instance_ids: "{{ item.instance_ids }}"
-        region: "{{ aws_region }}"
       register: server
       loop_control:
         label: "{{ item.instance }}"

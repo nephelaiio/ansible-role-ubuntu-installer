@@ -60,7 +60,7 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
 
   kvm:
-    name: iso
+    name: kvm
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.

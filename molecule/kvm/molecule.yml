@@ -6,7 +6,7 @@ driver:
 platforms:
   - name: instance
     image: ami-06866e21db8917d18
-    instance_type: a1.metal
+    instance_type: c5n.metal
 provisioner:
   name: ansible
   playbooks:

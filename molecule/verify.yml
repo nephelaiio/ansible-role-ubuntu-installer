@@ -12,7 +12,7 @@
 
     - name: retrieve iso status
       stat:
-        path: "{{ ubuntu_installer_target_dir }}/{{ vm.ubuntu_installer_hostname }}.iso"
+        path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.iso"
       vars:
         ubuntu_installer_target_dir: "{{ playbook_dir }}"
       loop_control:
@@ -27,7 +27,7 @@
           - vm_iso.stat.exists | bool
       loop_control:
         loop_var: vm_iso
-        label: "{{ vm_iso.stat.path }}"
+        label: "{{ vm_iso.stat.path | default('unknown') }}"
       loop: "{{ vm_isos.results }}"
 
 

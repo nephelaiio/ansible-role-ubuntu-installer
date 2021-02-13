@@ -63,3 +63,11 @@
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
           - python3-libvirt
+
+    - name: create cache dir
+      file:
+        path: "{{ cache_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755

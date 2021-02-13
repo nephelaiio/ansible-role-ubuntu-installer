@@ -5,13 +5,14 @@ bridge_host: "{{ __bridge_net | nthhost(1) }}"
 bridge_prefix: "{{ __bridge_net | ipaddr('prefix') }}"
 bridge_name: dummybr0
 iface_name: dummy0
-ssh_keypair: "{{ playbook_dir }}/id_rsa"
+cache_dir: /tmp/molecule
+ssh_keypair: "{{ cache_dir }}/id_rsa"
 ubuntu_installers:
   focal:
-    dest: file://{{ playbook_dir }}/focal-live.iso
+    dest: "file://{{ cache_dir }}/focal-live.iso"
     url: "{{ focal_url | default('https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-live-server-amd64.iso') }}"
   groovy:
-    dest: file://{{ playbook_dir }}/groovy-live.iso
+    dest: "file://{{ cache_dir }}/groovy-live.iso"
     url: "{{ groovy_url | default('https://releases.ubuntu.com/20.10/ubuntu-20.10-live-server-amd64.iso') }}"
 vms:
   - ubuntu_installer_hostname: focal-lvm

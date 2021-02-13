@@ -43,7 +43,7 @@
         name: nephelaiio.ubuntu_installer
       vars:
         ubuntu_installer_interface_name: enp0s3
-        ubuntu_installer_target_dir: "{{ playbook_dir }}"
+        ubuntu_installer_target_dir: "{{ cache_dir }}"
         ubuntu_installer_image_url: "{{ ubuntu_installers[vm.ubuntu_installer_ref].dest }}"
         ubuntu_installer_hostname: "{{ vm.ubuntu_installer_hostname }}"
         ubuntu_installer_username: molecule
@@ -84,7 +84,7 @@
             path: "{{ vm_disk }}"
             state: absent
           vars:
-            vm_disk: "{{ playbook_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+            vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
           loop_control:
             loop_var: vm
             label: "{{ vm.ubuntu_installer_hostname }}"
@@ -95,7 +95,7 @@
           args:
             creates: "{{ vm_disk }}"
           vars:
-            vm_disk: "{{ playbook_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+            vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
           loop_control:
             loop_var: vm
             label: "{{ vm.ubuntu_installer_hostname }}"
@@ -108,8 +108,8 @@
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
             vm_bridge: "{{ bridge_name }}"
-            vm_iso: "{{ playbook_dir }}/{{ vm_hostname }}.iso"
-            vm_disk_path: "{{ playbook_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+            vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
+            vm_disk_path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
             vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
             xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
           loop_control:
@@ -125,7 +125,7 @@
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
             vm_bridge: "{{ bridge_name }}"
-            vm_iso: "{{ playbook_dir }}/{{ vm_hostname }}.iso"
+            vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
             vm_disk_path: "{{ vm.ubuntu_installer_hostname }}.img"
             vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
             xml_template: "{{ lookup('template', 'vm.xml.j2') }}"

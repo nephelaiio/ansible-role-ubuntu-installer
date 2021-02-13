@@ -164,7 +164,7 @@
         host: "{{ item.address }}"
         search_regex: SSH
         delay: 10
-        timeout: 320
+        timeout: 600
       loop_control:
         label: "{{ item.instance }}"
       loop: "{{ lookup('file', molecule_instance_config) | from_yaml }}"

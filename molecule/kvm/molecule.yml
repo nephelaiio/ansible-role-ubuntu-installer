@@ -5,7 +5,7 @@ driver:
   name: delegated
 platforms:
   - name: instance
-    image: ami-06866e21db8917d18
+    image: ami-03d315ad33b9d49c4
     instance_type: c5n.metal
 provisioner:
   name: ansible

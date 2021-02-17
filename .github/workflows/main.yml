@@ -36,29 +36,6 @@ jobs:
           yamllint .
           ansible-lint .
 
-  iso:
-    name: iso
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v2
-        with:
-          path: 'nephelaiio.ubuntu_installer'
-
-      - name: Set up Python 3.
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install test dependencies.
-        run: pip3 install -r requirements.txt
-
-      - name: Run Molecule tests.
-        run: molecule test -s iso
-        env:
-          PY_COLORS: '1'
-          ANSIBLE_FORCE_COLOR: '1'
-
   kvm:
     name: kvm
     runs-on: ubuntu-latest

@@ -37,36 +37,41 @@
         label: "{{ item.key }}"
       loop: "{{ ansible_devices | dict2items }}"
 
-    - name: create molecule vg
-      lvg:
-        vg: molecule
-        pvs: "{{ ','.join(ec2_disks) }}"
+    - block:
 
-    - name: create molecule lv
-      lvol:
-        vg: molecule
-        lv: molecule
-        size: "+100%FREE"
+        - name: create molecule vg
+          lvg:
+            vg: molecule
+            pvs: "{{ ','.join(ec2_disks) }}"
 
-    - name: create molecule filesystem
-      filesystem:
-        fstype: ext4
-        dev: /dev/mapper/molecule-molecule
+        - name: create molecule lv
+          lvol:
+            vg: molecule
+            lv: molecule
+            size: "+100%FREE"
 
-    - name: create molecule cache dir
-      file:
-        path: "{{ cache_dir }}"
-        state: directory
-        owner: root
-        group: root
-        mode: 0755
+        - name: create molecule filesystem
+          filesystem:
+            fstype: ext4
+            dev: /dev/mapper/molecule-molecule
 
-    - name: mount molecule filesystem
-      mount:
-        path: "{{ cache_dir }}"
-        src: /dev/mapper/molecule-molecule
-        fstype: ext4
-        state: mounted
+        - name: create molecule cache dir
+          file:
+            path: "{{ cache_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: 0755
+
+        - name: mount molecule filesystem
+          mount:
+            path: "{{ cache_dir }}"
+            src: /dev/mapper/molecule-molecule
+            fstype: ext4
+            state: mounted
+      when:
+        - ec2_disks is defined
+        - (ec2_disks | length) > 0
 
   tasks:
 

@@ -19,7 +19,7 @@ provisioner:
   inventory:
     group_vars:
       all:
-        kvm_enabled: ${MOLECULE_TEST_KVM:-true}
+        kvm_enabled: true
         aws_region: us-east-1
         aws_subnet_id: subnet-d2a31c8b
         ssh_keypair: ${MOLECULE_EPHEMERAL_DIRECTORY}/ssh_key

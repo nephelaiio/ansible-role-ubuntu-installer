@@ -18,7 +18,7 @@ provisioner:
   inventory:
     group_vars:
       all:
-        kvm_enabled: ${MOLECULE_TEST_KVM:-false}
+        kvm_enabled: false
         ssh_keypair: ${MOLECULE_EPHEMERAL_DIRECTORY}/ssh_key
 verifier:
   name: ansible

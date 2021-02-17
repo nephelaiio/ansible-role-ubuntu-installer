@@ -50,9 +50,9 @@
             groups:
               - install
             ansible_host: "{{ vm_address }}"
-            ansible_user: molecule
-            ansible_ssh_private_key_file: "{{ ssh_keypair }}"
-            ansible_ssh_common_args: "-o ProxyCommand=\"ssh -W %h:%p -q {{ ansible_user }}@{{ ansible_default_ipv4.address }}\""
+            ansible_user: 'molecule'
+            ansible_ssh_private_key_file: "{{ ssh_keypair | regex_replace('.pub$', '') }}"
+            ansible_ssh_common_args: "{{ ssh_args | default(omit) }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
@@ -75,7 +75,9 @@
 
     - name: test connection
       wait_for_connection:
+        delay: 300
         sleep: 10
+        timeout: 900
 
     - name: gather partition info
       shell: "lsblk -l | grep /$"

@@ -6,7 +6,7 @@ driver:
 platforms:
   - name: instance
     image: ami-03d315ad33b9d49c4
-    instance_type: c5n.metal
+    instance_type: c5d.metal
 provisioner:
   name: ansible
   playbooks:
@@ -14,15 +14,21 @@ provisioner:
     verify: ../verify.yml
     prepare: ../prepare.yml
     cleanup: ../cleanup.yml
+    create: ../create.yml
+    destroy: ../destroy.yml
   inventory:
     group_vars:
       all:
         kvm_enabled: ${MOLECULE_TEST_KVM:-true}
         aws_region: us-east-1
         aws_subnet_id: subnet-d2a31c8b
+        ssh_keypair: ${MOLECULE_EPHEMERAL_DIRECTORY}/ssh_key
+        ssh_args: "-o ProxyCommand=\"ssh -W %h:%p -q {{ ansible_user }}@{{ ansible_host }} -i {{ ssh_keypair }}\""
 verifier:
   name: ansible
 scenario:
+  converge_sequence:
+    - converge
   test_sequence:
     - dependency
     - lint

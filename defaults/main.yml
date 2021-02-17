@@ -22,7 +22,6 @@ ubuntu_installer_timezone: America/Costa_Rica
 ubuntu_installer_interface:  # override seed file network autoconfiguration
   static: false
 ubuntu_installer_interface_name: eno1  # should probably be overriden
-ubuntu_installer_halt: false
 ubuntu_installer_poweroff: false
 ubuntu_installer_seed_template: ubuntu.seed.j2
 ubuntu_installer_mirror: archive.ubuntu.com

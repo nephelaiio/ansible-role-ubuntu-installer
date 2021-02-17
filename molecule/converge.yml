@@ -20,6 +20,54 @@
         update_cache: yes
       when: (ansible_os_family | lower) == 'debian'
 
+    - name: install disk utils
+      apt:
+        name:
+          - parted
+          - lvm2
+
+    - name: select EC2 NVMe disks
+      set_fact:
+        ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
+      vars:
+        ec2_disk: "/dev/{{ item.key }}"
+      when:
+        - item.value.model == 'Amazon EC2 NVMe Instance Storage'
+      loop_control:
+        label: "{{ item.key }}"
+      loop: "{{ ansible_devices | dict2items }}"
+
+    - name: create molecule vg
+      lvg:
+        vg: molecule
+        pvs: "{{ ','.join(ec2_disks) }}"
+
+    - name: create molecule lv
+      lvol:
+        vg: molecule
+        lv: molecule
+        size: "+100%FREE"
+
+    - name: create molecule filesystem
+      filesystem:
+        fstype: ext4
+        dev: /dev/mapper/molecule-molecule
+
+    - name: create molecule cache dir
+      file:
+        path: "{{ cache_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: mount molecule filesystem
+      mount:
+        path: "{{ cache_dir }}"
+        src: /dev/mapper/molecule-molecule
+        fstype: ext4
+        state: mounted
+
   tasks:
 
     - name: cache installer files
@@ -31,12 +79,39 @@
         label: "{{ iso.key }}"
       loop: "{{ ubuntu_installers | dict2items }}"
 
-    - name: create ssh keypair
-      openssh_keypair:
-        path: "{{ ssh_keypair }}"
-        type: rsa
-      register: molecule_keypair
-      become: no
+    - block:
+
+        - name: detect existing ssh privkey
+          stat:
+            path: "{{ ssh_keypair }}"
+          register: molecule_privkey_stat
+
+        - name: detect existing ssh pubkey
+          stat:
+            path: "{{ ssh_keypair }}.pub"
+          register: molecule_pubkey_stat
+
+        - name: create ssh keypair
+          openssh_keypair:
+            path: "{{ ssh_keypair }}"
+            type: rsa
+          when: not molecule_privkey_stat.stat.exists
+          become: no
+
+        - name: recreate ssh pubkey
+          shell: "ssh-keygen -y -f {{ ssh_keypair }} > {{ ssh_keypair }}.pub"
+          args:
+            creates: "{{ ssh_keypair }}.pub"
+          when:
+            - molecule_privkey_stat.stat.exists
+            - not molecule_pubkey_stat.stat.exists
+
+        - name: read ssh keypair
+          slurp:
+            path: "{{ ssh_keypair }}.pub"
+          register: molecule_pubkey_slurp
+
+      delegate_to: localhost
 
     - name: build installer isos
       include_role:
@@ -48,7 +123,7 @@
         ubuntu_installer_hostname: "{{ vm.ubuntu_installer_hostname }}"
         ubuntu_installer_username: molecule
         ubuntu_installer_password: "{{ 'molecule' | password_hash('sha512') }}"
-        ubuntu_installer_sshkey: "{{ molecule_keypair.public_key }}"
+        ubuntu_installer_sshkey: "{{ molecule_pubkey_slurp['content'] | b64decode }}"
         ubuntu_installer_halt: false
         ubuntu_installer_interface: "{{ vm.ubuntu_installer_interface }}"
         ubuntu_installer_partman_method: "{{ vm.ubuntu_installer_partman_method }}"

@@ -26,6 +26,14 @@
           - parted
           - lvm2
 
+    - name: create molecule cache dir
+      file:
+        path: "{{ cache_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
     - name: select EC2 NVMe disks
       set_fact:
         ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
@@ -54,14 +62,6 @@
           filesystem:
             fstype: ext4
             dev: /dev/mapper/molecule-molecule
-
-        - name: create molecule cache dir
-          file:
-            path: "{{ cache_dir }}"
-            state: directory
-            owner: root
-            group: root
-            mode: 0755
 
         - name: mount molecule filesystem
           mount:

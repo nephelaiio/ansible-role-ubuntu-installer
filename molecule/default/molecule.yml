@@ -25,7 +25,6 @@ provisioner:
     group_vars:
       all:
         kvm_enabled: true
-        ssh_keypair: ${MOLECULE_EPHEMERAL_DIRECTORY}/ssh_key
 verifier:
   name: ansible
 scenario:

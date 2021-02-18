@@ -31,9 +31,6 @@
         to_port: 0
         cidr_ip: '0.0.0.0/0'
 
-    key_pair_name: molecule_key
-    key_pair_path: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/ssh_key"
-
   tasks:
 
     - name: Find the vpc for the subnet
@@ -59,26 +56,33 @@
 
     - name: Test for presence of local key pair
       stat:
-        path: "{{ key_pair_path }}"
-      register: key_pair_local
+        path: "{{ molecule_key_pair_path }}"
+      register: molecule_key_pair_local
 
     - name: Delete remote key pair
       ec2_key:
         region: "{{ aws_region }}"
-        name: "{{ key_pair_name }}"
+        name: "{{ molecule_key_pair_name }}"
         state: absent
-      when: not key_pair_local.stat.exists
+      when: not molecule_key_pair_local.stat.exists
 
     - name: Create key pair
       ec2_key:
         region: "{{ aws_region }}"
-        name: "{{ key_pair_name }}"
+        name: "{{ molecule_key_pair_name }}"
       register: key_pair
 
-    - name: Persist the key pair
+    - name: Persist the private key
       copy:
-        dest: "{{ key_pair_path }}"
+        dest: "{{ molecule_key_pair_path }}"
         content: "{{ key_pair.key.private_key }}"
+        mode: 0600
+      when: key_pair.changed
+
+    - name: Persist the pub key
+      copy:
+        dest: "{{ molecule_key_pair_path }}.pub"
+        content: "{{ key_pair.key.public_key }}"
         mode: 0600
       when: key_pair.changed
 
@@ -97,7 +101,7 @@
     - name: Create molecule instance(s)
       ec2:
         region: "{{ aws_region }}"
-        key_name: "{{ key_pair_name }}"
+        key_name: "{{ molecule_key_pair_name }}"
         image: "{{ item.image
           if item.image is defined
           else (ami_info.results[index].images | sort(attribute='creation_date', reverse=True))[0].image_id }}"
@@ -139,7 +143,7 @@
           'address': "{{ item.instances[0].public_ip }}",
           'user': "{{ ssh_user }}",
           'port': "{{ ssh_port }}",
-          'identity_file': "{{ key_pair_path }}",
+          'identity_file': "{{ molecule_key_pair_path }}",
           'instance_ids': "{{ item.instance_ids }}", }
       loop_control:
         label: '{{ item.instances[0].id }}'

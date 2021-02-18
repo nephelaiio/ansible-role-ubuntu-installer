@@ -50,11 +50,6 @@
             state: present
             key: "{{ debug_pubkey }}"
 
-        - name: read ssh keypair
-          set_fact:
-            installer_privkey: "{{ lookup('file', ssh_keypair) | trim }}"
-            installer_pubkey: "{{ lookup('file', ssh_keypair + '.pub') | trim }}"
-
         - name: add vm to inventory
           add_host:
             name: "{{ vm_hostname }}"
@@ -62,9 +57,7 @@
               - install
             ansible_host: "{{ vm_address }}"
             ansible_user: 'molecule'
-            ansible_ssh_private_key_file: "{{ ssh_keypair }}"
-            ansible_ssh_private_key_text: "{{ installer_privkey }}"
-            ansible_ssh_public_key_text: "{{ installer_pubkey }}"
+            ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
             ansible_ssh_common_args: "{{ ssh_args | default(omit) }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
           vars:

@@ -93,7 +93,7 @@
     - name: test connection
       wait_for_connection:
         sleep: 10
-        timeout: 900
+        timeout: 1200
 
     - name: gather partition info
       shell: "lsblk -l | grep /$"

@@ -44,6 +44,12 @@
 
     - block:
 
+        - name: read ssh keypair
+          slurp:
+            path: "{{ ssh_keypair }}"
+          register: molecule_privkey_slurp
+          delegate_to: localhost
+
         - name: add vm to inventory
           add_host:
             name: "{{ vm_hostname }}"
@@ -52,6 +58,7 @@
             ansible_host: "{{ vm_address }}"
             ansible_user: 'molecule'
             ansible_ssh_private_key_file: "{{ ssh_keypair | regex_replace('.pub$', '') }}"
+            ansible_ssh_private_key_secret: "{{ molecule_privkey_slurp['content'] | b64decode }}"
             ansible_ssh_common_args: "{{ ssh_args | default(omit) }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
           vars:
@@ -73,10 +80,19 @@
 
   tasks:
 
+    - name: debug connection parameters
+      debug:
+        msg: "{{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }}"
+
+    - name: debug connection secret
+      debug:
+        msg: "{{ ansible_ssh_private_key_secret }}"
+      run_once: yes
+
     - name: test connection
       wait_for_connection:
         delay: 300
-        sleep: 10
+        sleep: 30
         timeout: 900
 
     - name: gather partition info

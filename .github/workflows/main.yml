@@ -53,6 +53,9 @@ jobs:
       - name: Install test dependencies.
         run: pip3 install -r requirements.txt
 
+      - name: Clean up molecule scenario
+        run: molecule reset -s kvm
+
       - name: Run Molecule tests.
         run: molecule test -s kvm
         env:

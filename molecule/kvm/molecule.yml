@@ -9,6 +9,10 @@ platforms:
     instance_type: c5d.metal
 provisioner:
   name: ansible
+  log: true
+  config_options:
+    defaults:
+      callback_whitelist: profile_tasks
   playbooks:
     converge: ../converge.yml
     verify: ../verify.yml

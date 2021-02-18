@@ -15,6 +15,7 @@ provisioner:
   config_options:
     defaults:
       callback_whitelist: profile_tasks
+      host_key_checking: false
   playbooks:
     converge: ../converge.yml
     verify: ../verify.yml

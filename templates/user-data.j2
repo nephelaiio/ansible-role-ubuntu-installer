@@ -41,8 +41,7 @@ autoinstall:
     password: {{ ssh_pass }}
   ssh:
     install-server: yes
-    authorized-keys:
-      - {{ ssh_key }}
+    authorized-keys: {{ ssh_keys }}
   packages: [ {{ packages | join(',')}} ]
   user-data:
     disable_root: false

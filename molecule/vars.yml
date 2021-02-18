@@ -6,6 +6,7 @@ bridge_prefix: "{{ __bridge_net | ipaddr('prefix') }}"
 bridge_name: dummybr0
 iface_name: dummy0
 cache_dir: /tmp/molecule
+debug_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDET8Lo7rJRsoGLe3sLdQzq86elOm03XBuvwRS3QeNU9E2mVRkDoccIIlC5+O2wBtfo48aCZBJJF8BuM33O+a31SM9YIzfOMu+HsInYZyysC72zCOIMTJ+zy1cBs3aS+oE7KnCX7mty1v4BzE0Ob49jZ+KhaJh2Fsnp7DXtWf9ozj7IQ/Fq8VZJdvT5CVo+yvRJqkgxEnB0++Q8OmV7fvO4ed9pTuRtNz7nLHOz2+/RY7ffx+GX9iUOt7YbGmCeJOgrBG9nHVU0G1m6sK3QwLAmMK3y0bVv89PMIUWDuVLhttVgt1xv+IOTliSx1ugZT52tSLUNgdfFVCMnTDs9vMpz teddyphreak@nucz"
 ubuntu_installers:
   focal:
     dest: "file://{{ cache_dir }}/focal-live.iso"
@@ -26,6 +27,7 @@ vms:
         - 1.1.1.1
         - 8.8.8.8
     ubuntu_installer_partman_method: lvm
+    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
   - ubuntu_installer_hostname: focal-static
     ubuntu_installer_ref: focal
     ubuntu_installer_interface:
@@ -38,3 +40,4 @@ vms:
         - 1.1.1.1
         - 8.8.8.8
     ubuntu_installer_partman_method: regular
+    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com

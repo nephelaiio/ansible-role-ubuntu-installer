@@ -31,6 +31,9 @@
         to_port: 0
         cidr_ip: '0.0.0.0/0'
 
+  vars_files:
+    - ./vars.yml
+
   tasks:
 
     - name: Find the vpc for the subnet

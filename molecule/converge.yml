@@ -8,11 +8,6 @@
   vars_files:
     - ./vars.yml
 
-  vars:
-
-    vm_disk_size: 10G
-    vm_disk_format: raw
-
   pre_tasks:
 
     - name: update apt package cache
@@ -25,14 +20,6 @@
         name:
           - parted
           - lvm2
-
-    - name: create molecule cache dir
-      file:
-        path: "{{ cache_dir }}"
-        state: directory
-        owner: root
-        group: root
-        mode: 0755
 
     - name: select EC2 NVMe disks
       set_fact:
@@ -151,6 +138,7 @@
             creates: "{{ vm_disk }}"
           vars:
             vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+            vm_disk_size: "{{ vm.ubuntu_installer_disk_size }}"
           loop_control:
             loop_var: vm
             label: "{{ vm.ubuntu_installer_hostname }}"
@@ -166,6 +154,7 @@
             vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
             vm_disk_path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
             vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
+            vm_disk_format: raw
             xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
           loop_control:
             loop_var: vm
@@ -183,6 +172,7 @@
             vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
             vm_disk_path: "{{ vm.ubuntu_installer_hostname }}.img"
             vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
+            vm_disk_format: raw
             xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
           loop_control:
             loop_var: vm

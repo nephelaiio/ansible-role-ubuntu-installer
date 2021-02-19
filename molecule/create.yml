@@ -1,5 +1,5 @@
 ---
-- name: Create
+- name: create
 
   hosts: localhost
 
@@ -36,7 +36,7 @@
 
   tasks:
 
-    - name: Find the vpc for the subnet
+    - name: find the vpc for the subnet
       ec2_vpc_subnet_info:
         region: "{{ aws_region }}"
         subnet_ids: "{{ aws_subnet_id }}"
@@ -45,7 +45,7 @@
       loop: "{{ molecule_yml.platforms }}"
       register: subnet_info
 
-    - name: Create security groups
+    - name: create security groups
       ec2_group:
         region: "{{ aws_region }}"
         vpc_id: "{{ item.subnets[0].vpc_id }}"
@@ -57,39 +57,47 @@
         label: "{{ item.item.name }}"
       loop: "{{ subnet_info.results }}"
 
-    - name: Test for presence of local key pair
+    - name: test for presence of local key pair
       stat:
         path: "{{ molecule_key_pair_path }}"
       register: molecule_key_pair_local
 
-    - name: Delete remote key pair
+    - name: delete remote key pair
       ec2_key:
         region: "{{ aws_region }}"
         name: "{{ molecule_key_pair_name }}"
         state: absent
       when: not molecule_key_pair_local.stat.exists
 
-    - name: Create key pair
+    - name: create molecule cache dir
+      file:
+        path: "{{ cache_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: create key pair
       ec2_key:
         region: "{{ aws_region }}"
         name: "{{ molecule_key_pair_name }}"
       register: key_pair
 
-    - name: Persist the private key
+    - name: persist the private key
       copy:
         dest: "{{ molecule_key_pair_path }}"
         content: "{{ key_pair.key.private_key }}"
         mode: 0600
       when: key_pair.changed
 
-    - name: Persist the pub key
+    - name: persist the pub key
       copy:
         dest: "{{ molecule_key_pair_path }}.pub"
         content: "{{ key_pair.key.public_key }}"
         mode: 0600
       when: key_pair.changed
 
-    - name: Get the ec2 ami(s) by owner and name, if image not set
+    - name: get the ec2 ami(s) by owner and name, if image not set
       ec2_ami_info:
         region: "{{ aws_region }}"
         owners: "{{ item.image_owner }}"
@@ -101,7 +109,7 @@
       when: item.image is not defined
       register: ami_info
 
-    - name: Create molecule instance(s)
+    - name: create molecule instance(s)
       ec2:
         region: "{{ aws_region }}"
         key_name: "{{ molecule_key_pair_name }}"
@@ -127,7 +135,7 @@
       async: 7200
       poll: 0
 
-    - name: Wait for instance(s) creation to complete
+    - name: wait for instance(s) creation to complete
       async_status:
         jid: "{{ item.ansible_job_id }}"
       register: ec2_jobs
@@ -139,7 +147,7 @@
 
     # Mandatory configuration for Molecule to function.
 
-    - name: Populate instance config dict
+    - name: populate instance config dict
       set_fact:
         instance_conf_dict: {
           'instance': "{{ item.instances[0].tags.instance }}",
@@ -154,18 +162,18 @@
       register: instance_config_dict
       when: server.changed | bool
 
-    - name: Convert instance config dict to a list
+    - name: convert instance config dict to a list
       set_fact:
         instance_conf: "{{ instance_config_dict.results | map(attribute='ansible_facts.instance_conf_dict') | list }}"
       when: server.changed | bool
 
-    - name: Dump instance config
+    - name: dump instance config
       copy:
         content: "{{ instance_conf | to_json | from_json | to_yaml }}"
         dest: "{{ molecule_instance_config }}"
       when: server.changed | bool
 
-    - name: Wait for SSH
+    - name: wait for ssh
       wait_for:
         port: "{{ ssh_port }}"
         host: "{{ item.address }}"
@@ -176,6 +184,6 @@
         label: "{{ item.instance }}"
       loop: "{{ lookup('file', molecule_instance_config) | from_yaml }}"
 
-    - name: Wait for boot process to finish
+    - name: wait for boot process to finish
       pause:
         minutes: 2

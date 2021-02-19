@@ -22,13 +22,13 @@
       register: vm_isos
 
     - name: verify iso creation
-      assert:
-        that:
-          - vm_iso.stat.exists | bool
+      fail:
+        msg: unable to find iso
       loop_control:
         loop_var: vm_iso
         label: "{{ vm_iso.stat.path | default('unknown') }}"
       loop: "{{ vm_isos.results }}"
+      when: not (vm_iso.stat.exists | bool)
 
 
 - name: Add vms to inventory
@@ -60,6 +60,7 @@
             ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
             ansible_ssh_common_args: "{{ ssh_args | default(omit) }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
+            disk_size: "{{ vm.ubuntu_installer_disk_size }}"
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
             vm_address: "{{ vm.ubuntu_installer_interface.ipaddress }}"
@@ -88,20 +89,42 @@
         sleep: 10
         timeout: 1200
 
+    - name: gather facts
+      setup:
+
     - name: gather partition info
       shell: "lsblk -l | grep /$"
       register: lsblk_output
 
     - name: check static partitioning
       fail:
-        msg: "regular partitioning failed: {{ lsblk_output.stdout }}"
+        msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
       when:
-        - lsblk_output.stdout is not search('part')
         - partman_method == 'regular'
+        - lsblk_output.stdout is not search("part") or
+          lsblk_output.stdout is search("lvm")
 
-    - name: check lvm partitioning
+    - block:
+
+        - name: check lvm partitioning
+          fail:
+            msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
+          when:
+            - lsblk_output.stdout is not search('lvm')
+
+      when: partman_method == 'lvm'
+
+    - name: debug disk size
+      debug:
+        msg: "{{ installer_root_device }}"
+      vars:
+        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+
+    - name: check root device size
       fail:
-        msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
-      when:
-        - lsblk_output.stdout is not search('lvm')
-        - partman_method == 'lvm'
+        msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
+      vars:
+        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+        installer_root_size: "{{ installer_root_device.size_total }}"
+        installer_root_threshold: "{{ (0.85 * (disk_size | int)) | int }}"
+      when: (installer_root_size | int) < (installer_root_threshold | int)

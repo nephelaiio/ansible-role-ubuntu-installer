@@ -73,29 +73,26 @@
       file:
         path: "{{ cache_dir }}"
         state: directory
-        owner: root
-        group: root
-        mode: 0755
 
-    - name: create key pair
+    - name: create molecule key pair
       ec2_key:
         region: "{{ aws_region }}"
         name: "{{ molecule_key_pair_name }}"
       register: key_pair
 
-    - name: persist the private key
+    - name: persist molecule private key
       copy:
         dest: "{{ molecule_key_pair_path }}"
         content: "{{ key_pair.key.private_key }}"
         mode: 0600
       when: key_pair.changed
 
-    - name: persist the pub key
-      copy:
-        dest: "{{ molecule_key_pair_path }}.pub"
-        content: "{{ key_pair.key.public_key }}"
-        mode: 0600
-      when: key_pair.changed
+    - name: create kvm key pair
+      openssh_keypair:
+        path: "{{ kvm_key_pair_path }}"
+        force: yes
+      register: installer_keypair
+      become: no
 
     - name: get the ec2 ami(s) by owner and name, if image not set
       ec2_ami_info:

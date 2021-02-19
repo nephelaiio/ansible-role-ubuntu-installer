@@ -71,12 +71,6 @@
         label: "{{ iso.key }}"
       loop: "{{ ubuntu_installers | dict2items }}"
 
-    - name: create kvm key pair
-      openssh_keypair:
-        path: "{{ kvm_key_pair_path }}"
-      register: installer_keypair
-      become: no
-
     - name: build installer isos
       include_role:
         name: nephelaiio.ubuntu_installer
@@ -88,7 +82,7 @@
         ubuntu_installer_username: molecule
         ubuntu_installer_password: "{{ 'molecule' | password_hash('sha512') }}"
         ubuntu_installer_sshkey:
-          - "{{ installer_keypair.public_key }}"
+          - "{{ lookup('file', kvm_key_pair_path + '.pub') }}"
           - "{{ debug_pubkey }}"
         ubuntu_installer_halt: false
         ubuntu_installer_interface: "{{ vm.ubuntu_installer_interface }}"

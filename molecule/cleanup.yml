@@ -81,6 +81,6 @@
       command: "nmcli con del {{ bridge_name }}"
       failed_when: false
 
-    - name: detroy dummy interface
+    - name: destroy dummy interface
       command: "ip link del {{ iface_name }}"
       failed_when: false

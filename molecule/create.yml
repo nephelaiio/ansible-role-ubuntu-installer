@@ -1,4 +1,7 @@
 ---
+- import_playbook: cache.yml
+
+
 - name: create
 
   hosts: localhost

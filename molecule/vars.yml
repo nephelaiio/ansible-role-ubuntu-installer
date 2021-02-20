@@ -11,6 +11,7 @@ molecule_key_pair_name: molecule_key
 molecule_key_pair_path: "{{ cache_dir }}/molecule_key"
 kvm_key_pair_name: kvm_key
 kvm_key_pair_path: "{{ cache_dir }}/kvm_key"
+ssh_port_base: 2280
 
 ubuntu_installers:
   focal:

@@ -21,6 +21,10 @@
         from_port: "{{ ssh_port }}"
         to_port: "{{ ssh_port }}"
         cidr_ip: '0.0.0.0/0'
+      - proto: tcp
+        from_port: "{{ ssh_port_base }}"
+        to_port: "{{ (ssh_port_base | int) + (vms | length) - 1 }}"
+        cidr_ip: '0.0.0.0/0'
       - proto: icmp
         from_port: 8
         to_port: -1
@@ -57,7 +61,7 @@
         label: "{{ item.item.name }}"
       loop: "{{ subnet_info.results }}"
 
-    - name: test for presence of local key pair
+    - name: test for presence of molecule key pair
       stat:
         path: "{{ molecule_key_pair_path }}"
       register: molecule_key_pair_local

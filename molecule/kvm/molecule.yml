@@ -27,7 +27,6 @@ provisioner:
         kvm_enabled: true
         aws_region: us-east-1
         aws_subnet_id: subnet-d2a31c8b
-        ssh_args: '-o ProxyCommand="ssh -W %h:%p -q {{ ansible_user }}@{{ ansible_host }} -i {{ molecule_key_pair_path }}"'
 verifier:
   name: ansible
 scenario:

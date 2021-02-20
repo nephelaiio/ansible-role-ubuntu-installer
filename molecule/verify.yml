@@ -55,10 +55,10 @@
             name: "{{ vm_hostname }}"
             groups:
               - install
-            ansible_host: "{{ vm_address }}"
+            ansible_host: "{{ ansible_host }}"
+            ansible_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
             ansible_user: 'molecule'
             ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
-            ansible_ssh_common_args: "{{ ssh_args | default(omit) }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
             disk_size: "{{ vm.ubuntu_installer_disk_size }}"
           vars:
@@ -66,6 +66,7 @@
             vm_address: "{{ vm.ubuntu_installer_interface.ipaddress }}"
           loop_control:
             loop_var: vm
+            index_var: port_offset
             label: "{{ vm.ubuntu_installer_hostname }}"
           loop: "{{ vms }}"
 

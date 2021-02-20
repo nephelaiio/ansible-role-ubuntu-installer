@@ -73,11 +73,6 @@
         state: absent
       when: not molecule_key_pair_local.stat.exists
 
-    - name: create molecule cache dir
-      file:
-        path: "{{ cache_dir }}"
-        state: directory
-
     - name: create molecule key pair
       ec2_key:
         region: "{{ aws_region }}"

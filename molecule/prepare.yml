@@ -13,7 +13,6 @@
     - name: create molecule cache dir
       file:
         path: "{{ cache_dir }}"
-        owner: "{{ ansible_user }}"
         state: directory
       become: yes
 
@@ -119,4 +118,3 @@
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
           - python3-libvirt
-

@@ -64,7 +64,7 @@
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
             local_address: "{{ ansible_default_ipv4.address }}"
-            vm_address: "{{ (test_local | default('yes') | bool) | ternary(local_address, ansible_host) }}"
+            vm_address: "{{ (test_local | default('no') | bool) | ternary(local_address, ansible_host) }}"
           loop_control:
             loop_var: vm
             index_var: port_offset

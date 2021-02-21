@@ -33,7 +33,7 @@
 
 - name: Add vms to inventory
 
-  hosts: all
+  hosts: localhost
 
   become: yes
 
@@ -55,7 +55,7 @@
             name: "{{ vm_hostname }}"
             groups:
               - install
-            ansible_host: "{{ ansible_host }}"
+            ansible_host: "{{ vm_address }}"
             ansible_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
             ansible_user: 'molecule'
             ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
@@ -63,7 +63,8 @@
             disk_size: "{{ vm.ubuntu_installer_disk_size }}"
           vars:
             vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
-            vm_address: "{{ vm.ubuntu_installer_interface.ipaddress }}"
+            local_address: "{{ ansible_default_ipv4.address }}"
+            vm_address: "{{ (test_local | default('yes') | bool) | ternary(local_address, ansible_host) }}"
           loop_control:
             loop_var: vm
             index_var: port_offset

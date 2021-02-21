@@ -25,6 +25,7 @@ provisioner:
     group_vars:
       all:
         kvm_enabled: true
+        test_local: yes
 verifier:
   name: ansible
 scenario:

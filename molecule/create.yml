@@ -74,7 +74,6 @@
         region: "{{ aws_region }}"
         name: "{{ molecule_key_pair_name }}"
         state: absent
-      when: not molecule_key_pair_local.stat.exists
 
     - name: create molecule key pair
       ec2_key:
@@ -87,14 +86,6 @@
         dest: "{{ molecule_key_pair_path }}"
         content: "{{ key_pair.key.private_key }}"
         mode: 0600
-      when: key_pair.changed
-
-    - name: create kvm key pair
-      openssh_keypair:
-        path: "{{ kvm_key_pair_path }}"
-        force: yes
-      register: installer_keypair
-      become: no
 
     - name: get the ec2 ami(s) by owner and name, if image not set
       ec2_ami_info:

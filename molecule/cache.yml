@@ -23,5 +23,5 @@
       register: kvm_key_pair_local
 
     - name: create kvm key pair
-      command: "ssh-keygen -t rsa -f {{ kvm_key_pair_path }} -q -P ''"
+      command: "ssh-keygen -t rsa -f {{ kvm_key_pair_path }} -q -P '' -C ''"
       when: not kvm_key_pair_local.stat.exists

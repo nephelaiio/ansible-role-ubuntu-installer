@@ -33,7 +33,7 @@
 
 - name: Add vms to inventory
 
-  hosts: localhost
+  hosts: all
 
   become: yes
 
@@ -55,9 +55,9 @@
             name: "{{ vm_hostname }}"
             groups:
               - install
+            ansible_user: molecule
             ansible_host: "{{ vm_address }}"
             ansible_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
-            ansible_user: 'molecule'
             ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
             partman_method: "{{ vm.ubuntu_installer_partman_method }}"
             disk_size: "{{ vm.ubuntu_installer_disk_size }}"

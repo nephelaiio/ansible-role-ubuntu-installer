@@ -7,25 +7,11 @@ An [ansible role](https://galaxy.ansible.com/nephelaiio/ubuntu-installer) to gen
 
 ## Role Variables
 
-Please refer to the [defaults file](/defaults/main.yml) for an up to date list of input parameters.
+Please refer to the [defaults file](/defaults/main.yml) for a full list of input parameters.
 
 ## Example Playbook
 
-The following example will create an unattended iso for deploying nuc.nephelai.io with Xenial
-
-```
-- hosts: localhost
-  roles:
-     - role: nephelaiio.ubuntu_installer
-  vars:
-    ubuntu_installer_hostname: nuc.nephelai.io
-    ubuntu_installer_timezone: America/Costa_Rica
-    ubuntu_installer_disk: /dev/nvme0n1
-```
-
-It has been tested on NUC7I3BNH with NVMe storage
-
-The following example will create an unattended iso for deploying vm.nephelai.io with Aartful
+The following example will create an unattended iso for deploying vm.nephelai.io with Focal (20.04.1) pulled from releases.ubuntu.com (default)
 
 ```
 - hosts: localhost
@@ -33,8 +19,7 @@ The following example will create an unattended iso for deploying vm.nephelai.io
      - role: nephelaiio.ubuntu_installer
   vars:
     ubuntu_installer_hostname: vm.nephelai.io
-    ubuntu_installer_timezone: America/Costa_Rica
-    ubuntu_installer_disk: /dev/sda
+    ubuntu_installer_image_url: https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-live-server-amd64.iso
     ubuntu_installer_interface:
       static: true
       ipaddress: 10.40.0.22
@@ -43,18 +28,18 @@ The following example will create an unattended iso for deploying vm.nephelai.io
       nameservers: 8.8.8.8 8.8.4.8.8.8.8 8.8.4.4
 ```
 
-It has been tested on ESXi6.5 with a VM with default settings for Ubuntu
+Images are tested by provisioning kvm guests on ec2 bare metal instances
 
 ## Testing
 
 Please make sure your environment has [docker](https://www.docker.com) installed in order to run role validation tests. Additional python dependencies are listed in the [requirements file](/requirements.txt)
 
-Role is tested against the following distributions (docker images):
-  * Ubuntu Bionic
+Role is tested from an Ansible controller running Ubuntu Focal. Target iso flavors are:
+  * Ubuntu Focal
   
-It's designed to work on any recent Ubuntu release
+It's designed to work on a controller running any recent Ubuntu release (Bionic/Focal)
 
-You can test the role directly from sources using command ` molecule test `
+You can test the role directly from sources using command ` molecule test `. Note that this will reconfigure networking for network 192.168.255.0/24 which will be directly connected to a local bridge interface
 
 ## License
 

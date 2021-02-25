@@ -53,6 +53,22 @@ vms:
     ubuntu_installer_partman_method: regular
     ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
 
+  - ubuntu_installer_hostname: focal-lvm-50g
+    ubuntu_installer_ref: focal
+    ubuntu_installer_disk_size: "{{ 50*(1024**3) }}"
+    ubuntu_installer_interface:
+      static: true
+      ipaddress: "{{ __bridge_net | nthhost(4) }}"
+      network: "{{ __bridge_net | ipaddr('network') }}"
+      netmask: "{{ __bridge_net | ipaddr('netmask') }}"
+      gateway: "{{ bridge_host }}"
+      nameservers:
+        - 1.1.1.1
+        - 8.8.8.8
+    ubuntu_installer_partman_method: lvm
+    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
+
+
   - ubuntu_installer_hostname: focal-static-50g
     ubuntu_installer_ref: focal
     ubuntu_installer_disk_size: "{{ 50*(1024**3) }}"

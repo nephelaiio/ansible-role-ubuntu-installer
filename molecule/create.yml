@@ -193,10 +193,6 @@
 
   gather_facts: no
 
-  roles:
-
-    - nephelaiio.plugins
-
   vars_files:
     - ./vars.yml
 

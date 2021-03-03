@@ -1,7 +1,10 @@
 ---
+- import_playbook: inventory.yml
+
+
 - name: spawn kvm guests
 
-  hosts: all
+  hosts: molecule
 
   become: yes
 

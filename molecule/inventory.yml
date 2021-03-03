@@ -23,9 +23,13 @@
           "instance-state-name": [ "pending", "running", "stopped", "stopping", "shutting-down"]
       register: ec2_instance_query
 
+    - name: initialize instance metadata
+      set_fact:
+        ec2_instance_facts: {}
+
     - name: build existing instance metadata
       set_fact:
-        ec2_instance_facts: "{{ (ec2_instance_facts | default({})) | combine({ item.tags.Name: item}) }}"
+        ec2_instance_facts: "{{ ec2_instance_facts | combine({ item.tags.Name: item}) }}"
       loop_control:
         label: "{{ item.instance_id }}"
       loop: "{{ ec2_instance_query.instances }}"

@@ -2,7 +2,7 @@
 - import_playbook: cache.yml
 
 
-- name: create
+- name: initialize environment
 
   hosts: localhost
 
@@ -43,19 +43,51 @@
 
   tasks:
 
+    - name: ensure instance image is set
+      fail:
+        msg: "missing image attribuge for instance {{ item.name }}"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ molecule_yml.platforms }}"
+      when: item.image is not defined
+
+    - name: ensure instance type is set
+      fail:
+        msg: "missing instance_type attribuge for instance {{ item.name }}"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ molecule_yml.platforms }}"
+      when: item.instance_type is not defined
+
+    - name: ensure instance subnet_id is set
+      fail:
+        msg: "missing subnet_id attribuge for instance {{ item.name }}"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ molecule_yml.platforms }}"
+      when: item.subnet_id is not defined
+
+    - name: ensure instance user is set
+      fail:
+        msg: "missing user attribuge for instance {{ item.name }}"
+      loop_control:
+        label: "{{ item.name }}"
+      loop: "{{ molecule_yml.platforms }}"
+      when: item.user is not defined
+
     - name: find the vpc for the subnet
-      ec2_vpc_subnet_info:
-        region: "{{ aws_region }}"
-        subnet_ids: "{{ aws_subnet_id }}"
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ aws_env_region }}"
+        subnet_ids: "{{ item.subnet_id }}"
       loop_control:
         label: "{{ item.name }}"
       loop: "{{ molecule_yml.platforms }}"
       register: subnet_info
 
     - name: create security groups
-      ec2_group:
-        region: "{{ aws_region }}"
-        vpc_id: "{{ item.subnets[0].vpc_id }}"
+      amazon.aws.ec2_group:
+        region: "{{ aws_env_region }}"
+        vpc_id: "{{ (item.subnets | first).vpc_id }}"
         name: "{{ security_group_name }}"
         description: "{{ security_group_name }}"
         rules: "{{ security_group_rules }}"
@@ -70,110 +102,162 @@
       register: molecule_key_pair_local
 
     - name: delete remote key pair
-      ec2_key:
-        region: "{{ aws_region }}"
+      amazon.aws.ec2_key:
+        region: "{{ aws_env_region }}"
         name: "{{ molecule_key_pair_name }}"
         state: absent
 
-    - name: create molecule key pair
-      ec2_key:
-        region: "{{ aws_region }}"
+    - name: check molecule local key pair
+      stat:
+        path: "{{ molecule_key_pair_path }}"
+      register: molecule_key_pair_local
+
+    - name: create molecule local key pair
+      command: "ssh-keygen -t rsa -f {{ molecule_key_pair_path }} -q -P '' -C ''"
+      when: not molecule_key_pair_local.stat.exists
+
+    - name: create molecule ec2 key pair
+      amazon.aws.ec2_key:
+        region: "{{ aws_env_region }}"
         name: "{{ molecule_key_pair_name }}"
-      register: key_pair
+        key_material: "{{ lookup('file', molecule_key_pair_path + '.pub') }}"
 
-    - name: persist molecule private key
-      copy:
-        dest: "{{ molecule_key_pair_path }}"
-        content: "{{ key_pair.key.private_key }}"
-        mode: 0600
-
-    - name: get the ec2 ami(s) by owner and name, if image not set
-      ec2_ami_info:
-        region: "{{ aws_region }}"
-        owners: "{{ item.image_owner }}"
+    - name: query info for existing instances
+      ec2_instance_info:
+        region: "{{ aws_env_region }}"
         filters:
-          name: "{{ item.image_name }}"
-      loop_control:
-        label: "{{ item.name }}"
-      loop: "{{ molecule_yml.platforms }}"
-      when: item.image is not defined
-      register: ami_info
+          "tag:ansible_environment": "{{ aws_env_name }}"
+          "tag:ansible_project": "{{ aws_project_name }}"
+          "instance-state-name": [ "pending", "running" ]
+      register: ec2_instance_query
 
-    - name: create molecule instance(s)
-      ec2:
-        region: "{{ aws_region }}"
-        key_name: "{{ molecule_key_pair_name }}"
-        image: "{{ item.image
-          if item.image is defined
-          else (ami_info.results[index].images | sort(attribute='creation_date', reverse=True))[0].image_id }}"
+    - name: initialize instance_metadata
+      set_fact:
+        ec2_instance_names: []
+        ec2_instance_facts: []
+
+    - name: build existing instance metadata
+      set_fact:
+        ec2_instance_names: "{{ ec2_instance_names + [ item.tags.Name ] }}"
+        ec2_instance_facts: "{{ ec2_instance_facts | combine({ item.tags.Name: item}) }}"
+      loop_control:
+        label: "{{ item.instance_id }}"
+      loop: "{{ ec2_instance_query.instances }}"
+      when:
+        - item.tags is defined
+        - item.tags.Name is defined
+
+    - name: build target instance metadata
+      set_fact:
+        desired_instances: "{{ molecule_yml.platforms }}"
+        desired_instance_names: "{{ molecule_yml.platforms | map(attribute='name') | list }}"
+
+    - name: add hosts to inventory
+      add_host:
+        hostname: "{{ instance_name }}"
+        ansible_user: "{{ item.user }}"
+        security_group: "{{ security_group_name }}"
+        subnet_id: "{{ item.subnet_id }}"
         instance_type: "{{ item.instance_type }}"
-        vpc_subnet_id: "{{ aws_subnet_id }}"
-        group: "{{ security_group_name }}"
-        instance_tags: "{{ item.instance_tags | combine({'instance': item.name})
-          if item.instance_tags is defined
-          else {'instance': item.name} }}"
-        wait: true
-        assign_public_ip: true
-        exact_count: 1
-        count_tag:
-          instance: "{{ item.name }}"
-      register: server
-      loop: "{{ molecule_yml.platforms }}"
+        image: "{{ item.image }}"
+        user: "{{ item.user }}"
+        create: "{{ not (instance_name in ec2_instance_names) }}"
+        groups:
+          - provision
+      vars:
+        instance_name: "{{ item.name }}"
       loop_control:
-        index_var: index
-        label: "{{ item.name }}"
-      async: 7200
-      poll: 0
+        label: "{{ instance_name }}"
+      loop: "{{ desired_instances }}"
 
-    - name: wait for instance(s) creation to complete
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      register: ec2_jobs
-      until: ec2_jobs.finished
-      retries: 300
-      loop_control:
-        label: "{{ item.item.name }}"
-      loop: "{{ server.results }}"
-
-    # Mandatory configuration for Molecule to function.
-
-    - name: populate instance config dict
+    - name: set names for extra instances
       set_fact:
-        instance_conf_dict: {
-          'instance': "{{ item.instances[0].tags.instance }}",
-          'address': "{{ item.instances[0].public_ip }}",
-          'user': "{{ ssh_user }}",
-          'port': "{{ ssh_port }}",
-          'identity_file': "{{ molecule_key_pair_path }}",
-          'instance_ids': "{{ item.instance_ids }}", }
+        ec2_extra_instance_names: "{{ ec2_instance_names | difference(desired_instance_names) }}"
+
+    - name: destroy extra instances
+      community.aws.ec2_instance:
+        region: "{{ aws_env_region }}"
+        state: absent
+        instance_ids:
+          - "{{ instance_id }}"
+      vars:
+        instance_id: "{{ ec2_instance_facts[item].instance_id }}"
       loop_control:
-        label: '{{ item.instances[0].id }}'
-      loop: "{{ ec2_jobs.results }}"
-      register: instance_config_dict
-      when: server.changed | bool
+        label: "{{ instance_id }}"
+      loop: "{{ ec2_extra_instance_names }}"
 
-    - name: convert instance config dict to a list
-      set_fact:
-        instance_conf: "{{ instance_config_dict.results | map(attribute='ansible_facts.instance_conf_dict') | list }}"
-      when: server.changed | bool
 
-    - name: dump instance config
-      copy:
-        content: "{{ instance_conf | to_json | from_json | to_yaml }}"
-        dest: "{{ molecule_instance_config }}"
-      when: server.changed | bool
+- name: provision instances
 
-    - name: wait for ssh
-      wait_for:
-        port: "{{ ssh_port }}"
-        host: "{{ item.address }}"
-        search_regex: SSH
-        delay: 10
-        timeout: 600
-      loop_control:
-        label: "{{ item.instance }}"
-      loop: "{{ lookup('file', molecule_instance_config) | from_yaml }}"
+  hosts: provision
 
-    - name: wait for boot process to finish
-      pause:
-        minutes: 2
+  gather_facts: no
+
+  roles:
+
+    - nephelaiio.plugins
+
+  vars_files:
+    - ./vars.yml
+
+  tasks:
+
+    - name: create instances
+      community.aws.ec2_instance:
+        region: "{{ aws_env_region }}"
+        name: "{{ inventory_hostname }}"
+        state: present
+        key_name: "{{ molecule_key_pair_name }}"
+        instance_type: "{{ instance_type }}"
+        security_groups: "{{ security_group }}"
+        image_id: "{{ image }}"
+        wait: yes
+        wait_timeout: 600
+        vpc_subnet_id: "{{ subnet_id }}"
+        network:
+          assign_public_ip: yes
+        tags:
+          ansible_environment: "{{ aws_env_name }}"
+          ansible_project: "{{ aws_project_name }}"
+      delegate_to: localhost
+      when: create | bool
+
+    - block:
+
+        - name: query info for existing instances
+          ec2_instance_info:
+            region: "{{ aws_env_region }}"
+            filters:
+              "tag:ansible_environment": "{{ aws_env_name }}"
+              "tag:ansible_project": "{{ aws_project_name }}"
+              "instance-state-name": [ "pending", "running" ]
+          register: ec2_instance_query
+
+        - name: build existing instance metadata
+          set_fact:
+            ec2_instance_facts: "{{ (ec2_instance_facts | default({})) | combine({ item.tags.Name: item}) }}"
+          loop_control:
+            label: "{{ item.instance_id }}"
+          loop: "{{ ec2_instance_query.instances }}"
+          when:
+            - item.tags is defined
+            - item.tags.Name is defined
+
+      run_once: yes
+      delegate_to: localhost
+
+    - name: update instance tags
+      amazon.aws.ec2_tag:
+        region: "{{ aws_env_region }}"
+        resource: "{{ ec2_instance_facts[instance_name].instance_id }}"
+        state: present
+        tags:
+          ansible_environment: "{{ aws_env_name }}"
+          ansible_project: "{{ aws_project_name }}"
+          ansible_user: "{{ user }}"
+          ansible_host: "{{ instance_address }}"
+      vars:
+        instance_name: "{{ inventory_hostname }}"
+        instance_address: "{{ ec2_instance_facts[instance_name].public_ip_address }}"
+        instance_id: "{{ ec2_instance_facts[instance_name].instance_id }}"
+      delegate_to: localhost

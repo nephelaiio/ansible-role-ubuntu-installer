@@ -1,0 +1,47 @@
+---
+- name: add hosts to molecule inventory
+
+  hosts: localhost
+
+  connection: local
+
+  gather_facts: false
+
+  no_log: "{{ molecule_no_log }}"
+
+  vars_files:
+    - ./vars.yml
+
+  tasks:
+
+    - name: query info for existing instances
+      ec2_instance_info:
+        region: "{{ aws_env_region }}"
+        filters:
+          "tag:ansible_environment": "{{ aws_env_name }}"
+          "tag:ansible_project": "{{ aws_project_name }}"
+          "instance-state-name": [ "pending", "running", "stopped", "stopping", "shutting-down"]
+      register: ec2_instance_query
+
+    - name: build existing instance metadata
+      set_fact:
+        ec2_instance_facts: "{{ (ec2_instance_facts | default({})) | combine({ item.tags.Name: item}) }}"
+      loop_control:
+        label: "{{ item.instance_id }}"
+      loop: "{{ ec2_instance_query.instances }}"
+      when:
+        - item.tags is defined
+        - item.tags.Name is defined
+
+    - name: add hosts to inventory
+      add_host:
+        hostname: "{{ item.key }}"
+        ansible_user: "{{ item.value.tags.ansible_user }}"
+        ansible_host: "{{ item.value.tags.ansible_host }}"
+        ansible_ssh_private_key_file: "{{ molecule_key_pair_path }}"
+        instance_id: "{{ item.value.instance_id }}"
+        groups:
+          - molecule
+      loop_control:
+        label: "{{ item.key }}"
+      loop: "{{ ec2_instance_facts | dict2items }}"

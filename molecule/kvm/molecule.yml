@@ -1,12 +1,17 @@
 ---
 dependency:
   name: galaxy
+  options:
+    role-file: requirements.yml
+    requirements-file: requirements.yml
 driver:
   name: delegated
 platforms:
   - name: instance
+    user: ubuntu
     image: ami-03d315ad33b9d49c4
     instance_type: c5d.metal
+    subnet_id: subnet-d2a31c8b
 provisioner:
   name: ansible
   log: true
@@ -18,15 +23,15 @@ provisioner:
     converge: ../converge.yml
     verify: ../verify.yml
     prepare: ../prepare.yml
-    cleanup: ../cleanup.yml
     create: ../create.yml
     destroy: ../destroy.yml
   inventory:
     group_vars:
       all:
         kvm_enabled: true
-        aws_region: us-east-1
-        aws_subnet_id: subnet-d2a31c8b
+        aws_project_name: nephelaiio.ubuntu_installer
+        aws_env_name: ${MOLECULE_SCENARIO_NAME}
+        aws_env_region: us-east-1
 verifier:
   name: ansible
 scenario:
@@ -42,5 +47,4 @@ scenario:
     - prepare
     - converge
     - verify
-    - cleanup
     - destroy

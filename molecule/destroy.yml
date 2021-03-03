@@ -1,56 +1,21 @@
 ---
-- name: Destroy
-  hosts: localhost
-  connection: local
+- import_playbook: inventory.yml
+
+
+- name: decommission instances
+
+  hosts: molecule
+
   gather_facts: false
+
   no_log: "{{ molecule_no_log }}"
+
   tasks:
 
-    - block:
-
-        - name: Populate instance config
-          set_fact:
-            instance_conf: "{{ lookup('file', molecule_instance_config) | from_yaml }}"
-            skip_instances: false
-
-      rescue:
-
-        - name: Populate instance config when file missing
-          set_fact:
-            instance_conf: []
-            skip_instances: true
-
-    - name: Destroy molecule instance(s)
-      ec2:
-        region: "{{ aws_region }}"
+    - name: destroy instances
+      community.aws.ec2_instance:
+        region: "{{ aws_env_region }}"
         state: absent
-        instance_ids: "{{ item.instance_ids }}"
-      register: server
-      loop_control:
-        label: "{{ item.instance }}"
-      loop: "{{ instance_conf }}"
-      when: not skip_instances
-      async: 7200
-      poll: 0
-
-    - name: Wait for instance(s) deletion to complete
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      register: ec2_jobs
-      until: ec2_jobs.finished
-      retries: 300
-      loop_control:
-        label: "{{ item.item.instance }}"
-      loop: "{{ server.results }}"
-
-    # Mandatory configuration for Molecule to function.
-
-    - name: Populate instance config
-      set_fact:
-        instance_conf: {}
-
-    - name: Dump instance config
-      copy:
-        content: "{{ instance_conf | to_json | from_json | to_yaml }}"
-        dest: "{{ molecule_instance_config }}"
-      when: server.changed | bool
+        instance_ids:
+          - "{{ instance_id }}"
+      delegate_to: localhost

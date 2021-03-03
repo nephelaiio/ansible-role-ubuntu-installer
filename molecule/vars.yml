@@ -7,7 +7,7 @@ bridge_name: dummybr0
 iface_name: dummy0
 cache_dir: /tmp/molecule
 debug_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDET8Lo7rJRsoGLe3sLdQzq86elOm03XBuvwRS3QeNU9E2mVRkDoccIIlC5+O2wBtfo48aCZBJJF8BuM33O+a31SM9YIzfOMu+HsInYZyysC72zCOIMTJ+zy1cBs3aS+oE7KnCX7mty1v4BzE0Ob49jZ+KhaJh2Fsnp7DXtWf9ozj7IQ/Fq8VZJdvT5CVo+yvRJqkgxEnB0++Q8OmV7fvO4ed9pTuRtNz7nLHOz2+/RY7ffx+GX9iUOt7YbGmCeJOgrBG9nHVU0G1m6sK3QwLAmMK3y0bVv89PMIUWDuVLhttVgt1xv+IOTliSx1ugZT52tSLUNgdfFVCMnTDs9vMpz"
-molecule_key_pair_name: molecule_key
+molecule_key_pair_name: "{{ aws_project_name }}"
 molecule_key_pair_path: "{{ cache_dir }}/molecule_key"
 kvm_key_pair_name: kvm_key
 kvm_key_pair_path: "{{ cache_dir }}/kvm_key"

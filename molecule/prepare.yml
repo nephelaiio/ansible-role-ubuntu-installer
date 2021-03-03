@@ -2,9 +2,28 @@
 - import_playbook: cache.yml
 
 
-- name: prepare networking
+- import_playbook: inventory.yml
 
-  hosts: all
+
+- name: wait for provisioning to complete
+
+  hosts: molecule
+
+  connection: local
+
+  gather_facts: false
+
+  tasks:
+
+    - name: wait for connection
+      wait_for_connection:
+        sleep: 10
+        timeout: 600
+
+
+- name: prepare host networking
+
+  hosts: molecule
 
   become: yes
 

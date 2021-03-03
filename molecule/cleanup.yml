@@ -1,32 +1,10 @@
 ---
-- name: Probe hosts
-
-  hosts: all
-
-  gather_facts: no
-
-  tasks:
-
-    - block:
-
-        - name: probe hosts
-          wait_for_connection:
-            timeout: 10
-
-        - name: record online hosts
-          group_by:
-            key: "running_hosts"
-
-      rescue:
-
-        - name: record offline hosts
-          debug:
-            msg: "{{ inventory_hostname }} is offline"
+- import_playbook: inventory.yml
 
 
-- name: Prepare
+- name: destroy kvm guests
 
-  hosts: running_hosts
+  hosts: molecule
 
   become: yes
 

@@ -28,7 +28,7 @@ provisioner:
   inventory:
     group_vars:
       all:
-        kvm_enabled: true
+        test_local: no
         aws_project_name: nephelaiio.ubuntu_installer
         aws_env_name: ${MOLECULE_SCENARIO_NAME}
         aws_env_region: us-east-1

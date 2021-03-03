@@ -96,84 +96,80 @@
         label: "{{ vm.ubuntu_installer_hostname }}"
       loop: "{{ vms }}"
 
-    - block:
+    - name: destroy kvm guest
+      virt:
+        command: destroy
+        name: "{{ vm.ubuntu_installer_hostname }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
+      failed_when: false
 
-        - name: destroy kvm guest
-          virt:
-            command: destroy
-            name: "{{ vm.ubuntu_installer_hostname }}"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
-          failed_when: false
+    - name: undefine kvm guest
+      virt:
+        command: undefine
+        name: "{{ vm.ubuntu_installer_hostname }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
+      failed_when: false
 
-        - name: undefine kvm guest
-          virt:
-            command: undefine
-            name: "{{ vm.ubuntu_installer_hostname }}"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
-          failed_when: false
+    - name: destroy kvm guest disks
+      file:
+        path: "{{ vm_disk }}"
+        state: absent
+      vars:
+        vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
 
-        - name: destroy kvm guest disks
-          file:
-            path: "{{ vm_disk }}"
-            state: absent
-          vars:
-            vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
+    - name: create kvm guest disks
+      command: "qemu-img create {{ vm_disk }} {{ vm_disk_size }}"
+      args:
+        creates: "{{ vm_disk }}"
+      vars:
+        vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+        vm_disk_size: "{{ vm.ubuntu_installer_disk_size }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
 
-        - name: create kvm guest disks
-          command: "qemu-img create {{ vm_disk }} {{ vm_disk_size }}"
-          args:
-            creates: "{{ vm_disk }}"
-          vars:
-            vm_disk: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
-            vm_disk_size: "{{ vm.ubuntu_installer_disk_size }}"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
+    - name: create kvm guest
+      virt:
+        command: define
+        xml: "{{ xml_template }}"
+      vars:
+        vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
+        vm_bridge: "{{ bridge_name }}"
+        vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
+        vm_disk_path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
+        vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
+        vm_disk_format: raw
+        xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"
 
-        - name: create kvm guest
-          virt:
-            command: define
-            xml: "{{ xml_template }}"
-          vars:
-            vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
-            vm_bridge: "{{ bridge_name }}"
-            vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
-            vm_disk_path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.img"
-            vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
-            vm_disk_format: raw
-            xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
-
-        - name: start kvm guest
-          virt:
-            name: "{{ vm_hostname }}"
-            xml: "{{ xml_template }}"
-            state: running
-          vars:
-            vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
-            vm_bridge: "{{ bridge_name }}"
-            vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
-            vm_disk_path: "{{ vm.ubuntu_installer_hostname }}.img"
-            vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
-            vm_disk_format: raw
-            xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
-          loop_control:
-            loop_var: vm
-            label: "{{ vm.ubuntu_installer_hostname }}"
-          loop: "{{ vms }}"
-
-      when: (kvm_enabled | default('no')) | bool
+    - name: start kvm guest
+      virt:
+        name: "{{ vm_hostname }}"
+        xml: "{{ xml_template }}"
+        state: running
+      vars:
+        vm_hostname: "{{ vm.ubuntu_installer_hostname }}"
+        vm_bridge: "{{ bridge_name }}"
+        vm_iso: "{{ cache_dir }}/{{ vm_hostname }}.iso"
+        vm_disk_path: "{{ vm.ubuntu_installer_hostname }}.img"
+        vm_mac: "{{ '52:54:00' | random_mac(seed=vm_hostname)}}"
+        vm_disk_format: raw
+        xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm.ubuntu_installer_hostname }}"
+      loop: "{{ vms }}"

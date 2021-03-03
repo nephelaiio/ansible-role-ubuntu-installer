@@ -19,7 +19,7 @@
         name: localhost
         groups:
           - molecule
-      when: test_local | bool
+      when: (test_local | default('yes')) | bool
 
     - block:
 
@@ -59,4 +59,4 @@
             label: "{{ item.key }}"
           loop: "{{ ec2_instance_facts | dict2items }}"
 
-      when: not (test_local | bool)
+      when: not (test_local | default('yes')) | bool

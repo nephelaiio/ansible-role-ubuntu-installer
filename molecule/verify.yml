@@ -1,7 +1,10 @@
 ---
-- name: Verify iso creation
+- import_playbook: inventory.yml
 
-  hosts: all
+
+- name: verify iso creation
+
+  hosts: molecule
 
   gather_facts: false
 
@@ -31,9 +34,9 @@
       when: not (vm_iso.stat.exists | bool)
 
 
-- name: Add vms to inventory
+- name: add guests to inventory
 
-  hosts: all
+  hosts: molecule
 
   become: yes
 
@@ -86,7 +89,7 @@
       debug:
         msg: "{{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }}"
 
-    - name: test connection
+    - name: wait for connection
       wait_for_connection:
         sleep: 10
         timeout: 1200

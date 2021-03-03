@@ -8,7 +8,7 @@ driver:
     ansible_connection_options:
       ansible_connection: local
 platforms:
-  - name: instance
+  - name: localhost
 provisioner:
   name: ansible
   log: true

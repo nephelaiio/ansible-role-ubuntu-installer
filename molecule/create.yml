@@ -219,7 +219,7 @@
 
     - block:
 
-        - name: query info for existing instances
+        - name: query existing instances
           ec2_instance_info:
             region: "{{ aws_env_region }}"
             filters:
@@ -227,6 +227,9 @@
               "tag:ansible_project": "{{ aws_project_name }}"
               "instance-state-name": [ "pending", "running" ]
           register: ec2_instance_query
+          until: (ec2_instance_query.instances) | length > 0
+          retries: 30
+          delay: 10
 
         - name: build existing instance metadata
           set_fact:

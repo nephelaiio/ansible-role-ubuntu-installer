@@ -2,8 +2,8 @@
 dependency:
   name: galaxy
   options:
-    role-file: requirements.yml
-    requirements-file: requirements.yml
+    role-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
+    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
 driver:
   name: delegated
 platforms:

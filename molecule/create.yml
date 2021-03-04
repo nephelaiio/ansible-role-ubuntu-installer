@@ -194,23 +194,38 @@
 
   tasks:
 
-    - name: create instances
-      community.aws.ec2_instance:
-        region: "{{ aws_env_region }}"
-        name: "{{ inventory_hostname }}"
-        state: present
-        key_name: "{{ molecule_key_pair_name }}"
-        instance_type: "{{ instance_type }}"
-        security_groups: "{{ security_group }}"
-        image_id: "{{ image }}"
-        wait: yes
-        wait_timeout: 600
-        vpc_subnet_id: "{{ subnet_id }}"
-        network:
-          assign_public_ip: yes
-        tags:
-          ansible_environment: "{{ aws_env_name }}"
-          ansible_project: "{{ aws_project_name }}"
-          ansible_user: "{{ ansible_user }}"
+    - block:
+
+        - name: create instances
+          community.aws.ec2_instance:
+            region: "{{ aws_env_region }}"
+            name: "{{ inventory_hostname }}"
+            state: present
+            key_name: "{{ molecule_key_pair_name }}"
+            instance_type: "{{ instance_type }}"
+            security_groups: "{{ security_group }}"
+            image_id: "{{ image }}"
+            wait: yes
+            wait_timeout: 600
+            vpc_subnet_id: "{{ subnet_id }}"
+            network:
+              assign_public_ip: yes
+            tags:
+              ansible_environment: "{{ aws_env_name }}"
+              ansible_project: "{{ aws_project_name }}"
+              ansible_user: "{{ ansible_user }}"
+          when: create | bool
+
+        - name: wait for instance startup
+          ec2_instance_info:
+            region: "{{ aws_env_region }}"
+            filters:
+              "tag:ansible_environment": "{{ aws_env_name }}"
+              "tag:ansible_project": "{{ aws_project_name }}"
+              "instance-state-name": [ "running" ]
+          register: ec2_instance_query
+          until: (ec2_instance_query.instances | length) == (molecule_yml.platforms | length)
+          retries: 30
+          delay: 10
+
       delegate_to: localhost
-      when: create | bool

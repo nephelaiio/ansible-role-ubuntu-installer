@@ -60,10 +60,10 @@
         ansible_host: "{{ guest_address }}"
         ansible_port: "{{ guest_port }}"
         ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
-        partition_method: "{{ guest.centos_partitioning_method }}"
-        disk_size: "{{ guest.centos_installer_disk_size }}"
+        partman_method: "{{ guest.ubuntu_installer_partman_method }}"
+        disk_size: "{{ guest.ubuntu_installer_disk_size }}"
       vars:
-        guest_hostname: "{{ guest.centos_installer_hostname }}"
+        guest_hostname: "{{ guest.ubuntu_installer_hostname }}"
         bridge_address: "{{ guest.ubuntu_installer_interface.ipaddress }}"
         snat_address: "{{ ansible_host }}"
         guest_address: "{{ (aws_provision | default('no') | bool) | ternary(snat_address, bridge_address) }}"
@@ -73,7 +73,7 @@
       loop_control:
         loop_var: guest
         index_var: port_offset
-        label: "{{ guest.centos_installer_hostname }}"
+        label: "{{ guest.ubuntu_installer_hostname }}"
       loop: "{{ vms }}"
 
 

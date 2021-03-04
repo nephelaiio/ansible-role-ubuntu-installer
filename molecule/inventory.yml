@@ -17,6 +17,7 @@
     - name: add localhost to molecule group
       add_host:
         name: localhost
+        ansible_connection: local
         groups:
           - molecule
       when: not (aws_provision | default('no')) | bool

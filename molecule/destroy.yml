@@ -18,6 +18,7 @@
         state: absent
         instance_ids:
           - "{{ instance_id }}"
+      delegate_to: localhost
 
 
 - name: decommission instances

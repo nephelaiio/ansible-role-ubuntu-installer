@@ -16,7 +16,6 @@
 
     ssh_port: 22
 
-    security_group_name: molecule
     security_group_description: Security group for testing Molecule
     security_group_rules:
       - proto: tcp
@@ -25,7 +24,7 @@
         cidr_ip: '0.0.0.0/0'
       - proto: tcp
         from_port: "{{ ssh_port_base }}"
-        to_port: "{{ (ssh_port_base | int) + (vms | length) - 1 }}"
+        to_port: "{{ (ssh_port_base | int) + (guests | length) - 1 }}"
         cidr_ip: '0.0.0.0/0'
       - proto: icmp
         from_port: 8
@@ -74,7 +73,7 @@
       loop: "{{ molecule_yml.platforms }}"
       when: item.user is not defined
 
-    - name: find the vpc for the subnet
+    - name: query info for existing subnets
       amazon.aws.ec2_vpc_subnet_info:
         region: "{{ aws_env_region }}"
         subnet_ids: "{{ item.subnet_id }}"
@@ -86,14 +85,16 @@
     - name: create security groups
       amazon.aws.ec2_group:
         region: "{{ aws_env_region }}"
-        vpc_id: "{{ (item.subnets | first).vpc_id }}"
+        vpc_id: "{{ subnet.vpc_id }}"
         name: "{{ security_group_name }}"
         description: "{{ security_group_name }}"
         rules: "{{ security_group_rules }}"
         rules_egress: "{{ security_group_rules_egress }}"
+      vars:
+        subnet: "{{ item.1 }}"
       loop_control:
-        label: "{{ item.item.name }}"
-      loop: "{{ subnet_info.results }}"
+        label: "{{ subnet.subnet_id }}"
+      loop: "{{ q('subelements', subnet_info.results, 'subnets') }}"
 
     - name: test for presence of molecule key pair
       stat:
@@ -133,18 +134,15 @@
     - name: initialize instance_metadata
       set_fact:
         ec2_instance_names: []
-        ec2_instance_facts: []
+        ec2_instance_facts: {}
 
     - name: build existing instance metadata
       set_fact:
         ec2_instance_names: "{{ ec2_instance_names + [ item.tags.Name ] }}"
         ec2_instance_facts: "{{ ec2_instance_facts | combine({ item.tags.Name: item}) }}"
       loop_control:
-        label: "{{ item.instance_id }}"
+        label: "{{ item.tags.Name }} - {{ item.instance_id }}"
       loop: "{{ ec2_instance_query.instances }}"
-      when:
-        - item.tags is defined
-        - item.tags.Name is defined
 
     - name: build target instance metadata
       set_fact:
@@ -159,7 +157,6 @@
         subnet_id: "{{ item.subnet_id }}"
         instance_type: "{{ item.instance_type }}"
         image: "{{ item.image }}"
-        user: "{{ item.user }}"
         create: "{{ not (instance_name in ec2_instance_names) }}"
         groups:
           - provision
@@ -214,48 +211,6 @@
         tags:
           ansible_environment: "{{ aws_env_name }}"
           ansible_project: "{{ aws_project_name }}"
+          ansible_user: "{{ ansible_user }}"
       delegate_to: localhost
       when: create | bool
-
-    - block:
-
-        - name: query existing instances
-          ec2_instance_info:
-            region: "{{ aws_env_region }}"
-            filters:
-              "tag:ansible_environment": "{{ aws_env_name }}"
-              "tag:ansible_project": "{{ aws_project_name }}"
-              "instance-state-name": [ "pending", "running" ]
-          register: ec2_instance_query
-          until: (ec2_instance_query.instances) | length > 0
-          retries: 30
-          delay: 10
-
-        - name: build existing instance metadata
-          set_fact:
-            ec2_instance_facts: "{{ (ec2_instance_facts | default({})) | combine({ item.tags.Name: item}) }}"
-          loop_control:
-            label: "{{ item.instance_id }}"
-          loop: "{{ ec2_instance_query.instances }}"
-          when:
-            - item.tags is defined
-            - item.tags.Name is defined
-
-      run_once: yes
-      delegate_to: localhost
-
-    - name: update instance tags
-      amazon.aws.ec2_tag:
-        region: "{{ aws_env_region }}"
-        resource: "{{ ec2_instance_facts[instance_name].instance_id }}"
-        state: present
-        tags:
-          ansible_environment: "{{ aws_env_name }}"
-          ansible_project: "{{ aws_project_name }}"
-          ansible_user: "{{ user }}"
-          ansible_host: "{{ instance_address }}"
-      vars:
-        instance_name: "{{ inventory_hostname }}"
-        instance_address: "{{ ec2_instance_facts[instance_name].public_ip_address }}"
-        instance_id: "{{ ec2_instance_facts[instance_name].instance_id }}"
-      delegate_to: localhost

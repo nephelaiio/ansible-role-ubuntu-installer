@@ -30,7 +30,7 @@
             filters:
               "tag:ansible_environment": "{{ aws_env_name }}"
               "tag:ansible_project": "{{ aws_project_name }}"
-              "instance-state-name": [ "pending", "running", "stopped", "stopping", "shutting-down"]
+              "instance-state-name": [ "pending", "running" ]
           register: ec2_instance_query
 
         - name: initialize instance metadata
@@ -51,7 +51,7 @@
           add_host:
             hostname: "{{ item.key }}"
             ansible_user: "{{ item.value.tags.ansible_user }}"
-            ansible_host: "{{ item.value.tags.ansible_host }}"
+            ansible_host: "{{ item.value.public_ip_address }}"
             ansible_ssh_private_key_file: "{{ molecule_key_pair_path }}"
             instance_id: "{{ item.value.instance_id }}"
             groups:

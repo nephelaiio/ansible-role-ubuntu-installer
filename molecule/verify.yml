@@ -13,25 +13,23 @@
 
   tasks:
 
-    - name: retrieve iso status
+    - name: retrieve guest iso status
       stat:
-        path: "{{ cache_dir }}/{{ vm.ubuntu_installer_hostname }}.iso"
-      vars:
-        ubuntu_installer_target_dir: "{{ playbook_dir }}"
+        path: "{{ cache_dir }}/{{ guest.installer_hostname }}.iso"
       loop_control:
         loop_var: vm
-        label: "{{ vm.ubuntu_installer_hostname }}"
-      loop: "{{ vms }}"
-      register: vm_isos
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ guests }}"
+      register: guest_isos
 
     - name: verify iso creation
       fail:
         msg: unable to find iso
       loop_control:
-        loop_var: vm_iso
-        label: "{{ vm_iso.stat.path | default('unknown') }}"
-      loop: "{{ vm_isos.results }}"
-      when: not (vm_iso.stat.exists | bool)
+        loop_var: guest_iso
+        label: "{{ guest_iso.stat.path | default('unknown') }}"
+      loop: "{{ guest_isos.results }}"
+      when: not (guest_iso.stat.exists | bool)
 
 
 - name: add guests to inventory
@@ -60,11 +58,11 @@
         ansible_host: "{{ guest_address }}"
         ansible_port: "{{ guest_port }}"
         ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
-        partman_method: "{{ guest.ubuntu_installer_partman_method }}"
-        disk_size: "{{ guest.ubuntu_installer_disk_size }}"
+        partitioning_method: "{{ guest.installer_partitioning_method }}"
+        disk_size: "{{ guest.installer_disk_size }}"
       vars:
-        guest_hostname: "{{ guest.ubuntu_installer_hostname }}"
-        bridge_address: "{{ guest.ubuntu_installer_interface.ipaddress }}"
+        guest_hostname: "{{ guest.installer_hostname }}"
+        bridge_address: "{{ guest.installer_interface.ipaddress }}"
         snat_address: "{{ ansible_host }}"
         guest_address: "{{ (aws_provision | default('no') | bool) | ternary(snat_address, bridge_address) }}"
         bridge_port: 22
@@ -73,8 +71,8 @@
       loop_control:
         loop_var: guest
         index_var: port_offset
-        label: "{{ guest.ubuntu_installer_hostname }}"
-      loop: "{{ vms }}"
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ guests }}"
 
 
 - name: verify guests
@@ -108,7 +106,7 @@
       fail:
         msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
       when:
-        - partman_method == 'regular'
+        - partitioning_method == 'regular'
         - lsblk_output.stdout is not search("part") or
           lsblk_output.stdout is search("lvm")
 
@@ -120,7 +118,7 @@
           when:
             - lsblk_output.stdout is not search('lvm')
 
-      when: partman_method == 'lvm'
+      when: partitioning_method == 'lvm'
 
     - name: debug disk size
       debug:

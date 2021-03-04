@@ -18,4 +18,42 @@
         state: absent
         instance_ids:
           - "{{ instance_id }}"
+
+
+- name: decommission instances
+
+  hosts: localhost
+
+  gather_facts: false
+
+  no_log: "{{ molecule_no_log }}"
+
+  vars_files:
+    ./vars.yml
+
+  tasks:
+
+    - block:
+
+        - name: query info for existing subnets
+          amazon.aws.ec2_vpc_subnet_info:
+            region: "{{ aws_env_region }}"
+            subnet_ids: "{{ item.subnet_id }}"
+          loop_control:
+            label: "{{ item.name }}"
+          loop: "{{ molecule_yml.platforms }}"
+          register: subnet_info
+
+        - name: destroy security groups
+          amazon.aws.ec2_group:
+            region: "{{ aws_env_region }}"
+            vpc_id: "{{ subnet.vpc_id }}"
+            name: "{{ security_group_name }}"
+            state: absent
+          vars:
+            subnet: "{{ item.1 }}"
+          loop_control:
+            label: "{{ subnet.subnet_id }}"
+          loop: "{{ q('subelements', subnet_info.results, 'subnets') }}"
+
       delegate_to: localhost

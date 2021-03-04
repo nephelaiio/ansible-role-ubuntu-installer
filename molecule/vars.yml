@@ -1,19 +1,25 @@
 ---
+cache_dir: /tmp/molecule
+
 bridge_net: '192.168.255.0/24'
 __bridge_net: "{{ bridge_net | ipv4('network/prefix') }}"
 bridge_host: "{{ __bridge_net | nthhost(1) }}"
 bridge_prefix: "{{ __bridge_net | ipaddr('prefix') }}"
 bridge_name: dummybr0
 iface_name: dummy0
-cache_dir: /tmp/molecule
-debug_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDET8Lo7rJRsoGLe3sLdQzq86elOm03XBuvwRS3QeNU9E2mVRkDoccIIlC5+O2wBtfo48aCZBJJF8BuM33O+a31SM9YIzfOMu+HsInYZyysC72zCOIMTJ+zy1cBs3aS+oE7KnCX7mty1v4BzE0Ob49jZ+KhaJh2Fsnp7DXtWf9ozj7IQ/Fq8VZJdvT5CVo+yvRJqkgxEnB0++Q8OmV7fvO4ed9pTuRtNz7nLHOz2+/RY7ffx+GX9iUOt7YbGmCeJOgrBG9nHVU0G1m6sK3QwLAmMK3y0bVv89PMIUWDuVLhttVgt1xv+IOTliSx1ugZT52tSLUNgdfFVCMnTDs9vMpz"
-molecule_key_pair_name: "{{ aws_project_name }}"
-molecule_key_pair_path: "{{ cache_dir }}/molecule_key"
-kvm_key_pair_name: kvm_key
-kvm_key_pair_path: "{{ cache_dir }}/kvm_key"
+
+security_group_name: "{{ aws_project_name }}"
 ssh_port_base: 2280
 
-ubuntu_installers:
+molecule_key_pair_name: "{{ aws_project_name }}"
+molecule_key_pair_path: "{{ cache_dir }}/molecule_key"
+
+kvm_key_pair_name: kvm_key
+kvm_key_pair_path: "{{ cache_dir }}/kvm_key"
+
+debug_pubkey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDET8Lo7rJRsoGLe3sLdQzq86elOm03XBuvwRS3QeNU9E2mVRkDoccIIlC5+O2wBtfo48aCZBJJF8BuM33O+a31SM9YIzfOMu+HsInYZyysC72zCOIMTJ+zy1cBs3aS+oE7KnCX7mty1v4BzE0Ob49jZ+KhaJh2Fsnp7DXtWf9ozj7IQ/Fq8VZJdvT5CVo+yvRJqkgxEnB0++Q8OmV7fvO4ed9pTuRtNz7nLHOz2+/RY7ffx+GX9iUOt7YbGmCeJOgrBG9nHVU0G1m6sK3QwLAmMK3y0bVv89PMIUWDuVLhttVgt1xv+IOTliSx1ugZT52tSLUNgdfFVCMnTDs9vMpz"
+
+iso_installers:
   focal:
     dest: "file://{{ cache_dir }}/focal-live.iso"
     url: "{{ focal_url | default('https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-live-server-amd64.iso') }}"
@@ -21,12 +27,12 @@ ubuntu_installers:
     dest: "file://{{ cache_dir }}/groovy-live.iso"
     url: "{{ groovy_url | default('https://releases.ubuntu.com/20.10/ubuntu-20.10-live-server-amd64.iso') }}"
 
-vms:
+guests:
 
-  - ubuntu_installer_hostname: focal-lvm-10g
-    ubuntu_installer_ref: focal
-    ubuntu_installer_disk_size: "{{ 10*(1024**3) }}"
-    ubuntu_installer_interface:
+  - installer_hostname: focal-lvm-10g
+    installer_ref: focal
+    installer_disk_size: "{{ 10*(1024**3) }}"
+    installer_interface:
       static: true
       ipaddress: "{{ __bridge_net | nthhost(2) }}"
       network: "{{ __bridge_net | ipaddr('network') }}"
@@ -35,13 +41,13 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_installer_partman_method: lvm
-    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
+    installer_partitioning_method: lvm
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com
 
-  - ubuntu_installer_hostname: focal-static-10g
-    ubuntu_installer_ref: focal
-    ubuntu_installer_disk_size: "{{ 10*(1024**3) }}"
-    ubuntu_installer_interface:
+  - installer_hostname: focal-static-10g
+    installer_ref: focal
+    installer_disk_size: "{{ 10*(1024**3) }}"
+    installer_interface:
       static: true
       ipaddress: "{{ __bridge_net | nthhost(3) }}"
       network: "{{ __bridge_net | ipaddr('network') }}"
@@ -50,13 +56,13 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_installer_partman_method: regular
-    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
+    installer_partitioning_method: regular
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com
 
-  - ubuntu_installer_hostname: focal-lvm-50g
-    ubuntu_installer_ref: focal
-    ubuntu_installer_disk_size: "{{ 50*(1024**3) }}"
-    ubuntu_installer_interface:
+  - installer_hostname: focal-lvm-50g
+    installer_ref: focal
+    installer_disk_size: "{{ 50*(1024**3) }}"
+    installer_interface:
       static: true
       ipaddress: "{{ __bridge_net | nthhost(4) }}"
       network: "{{ __bridge_net | ipaddr('network') }}"
@@ -65,14 +71,14 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_installer_partman_method: lvm
-    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
+    installer_partitioning_method: lvm
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com
 
 
-  - ubuntu_installer_hostname: focal-static-50g
-    ubuntu_installer_ref: focal
-    ubuntu_installer_disk_size: "{{ 50*(1024**3) }}"
-    ubuntu_installer_interface:
+  - installer_hostname: focal-static-50g
+    installer_ref: focal
+    installer_disk_size: "{{ 50*(1024**3) }}"
+    installer_interface:
       static: true
       ipaddress: "{{ __bridge_net | nthhost(5) }}"
       network: "{{ __bridge_net | ipaddr('network') }}"
@@ -81,5 +87,5 @@ vms:
       nameservers:
         - 1.1.1.1
         - 8.8.8.8
-    ubuntu_installer_partman_method: regular
-    ubuntu_installer_mirror: us-east-1.ec2.archive.ubuntu.com
+    installer_partitioning_method: regular
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com

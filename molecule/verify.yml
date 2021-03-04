@@ -17,7 +17,7 @@
       stat:
         path: "{{ cache_dir }}/{{ guest.installer_hostname }}.iso"
       loop_control:
-        loop_var: vm
+        loop_var: guest
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
       register: guest_isos

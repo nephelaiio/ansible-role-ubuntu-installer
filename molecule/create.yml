@@ -14,7 +14,6 @@
 
   vars:
 
-    ssh_user: ubuntu
     ssh_port: 22
 
     security_group_name: molecule

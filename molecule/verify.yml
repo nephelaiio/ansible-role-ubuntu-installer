@@ -83,12 +83,12 @@
 
     - name: debug connection parameters
       debug:
-        msg: "{{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }}"
+        msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
 
     - name: wait for connection
       wait_for_connection:
         sleep: 10
-        timeout: 1200
+        timeout: 1800
 
     - name: gather facts
       setup:

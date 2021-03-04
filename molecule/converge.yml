@@ -141,8 +141,8 @@
 
     - name: create kvm guest
       virt:
-        command: define
         xml: "{{ xml_template }}"
+        command: define
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
         guest_bridge: "{{ bridge_name }}"
@@ -159,16 +159,9 @@
     - name: start kvm guest
       virt:
         name: "{{ guest_hostname }}"
-        xml: "{{ xml_template }}"
         state: running
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
-        guest_bridge: "{{ bridge_name }}"
-        guest_iso: "{{ cache_dir }}/{{ guest_hostname }}.iso"
-        guest_disk_path: "{{ guest.installer_hostname }}.img"
-        guest_mac: "{{ '52:54:00' | random_mac(seed=guest_hostname)}}"
-        guest_disk_format: raw
-        xml_template: "{{ lookup('template', 'vm.xml.j2') }}"
       loop_control:
         loop_var: guest
         label: "{{ guest.installer_hostname }}"

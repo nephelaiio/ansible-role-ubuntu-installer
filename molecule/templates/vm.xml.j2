@@ -1,5 +1,5 @@
 <domain type='kvm'>
-  <name>{{ vm_hostname }}</name>
+  <name>{{ guest_hostname }}</name>
   <memory unit='MiB'>4096</memory>
   <vcpu>2</vcpu>
   <os>
@@ -14,13 +14,13 @@
   <devices>
     <emulator>/usr/bin/qemu-system-x86_64</emulator>
     <disk type='file' device='disk'>
-      <driver name='qemu' type='{{ vm_disk_format }}'/>
-      <source file='{{ vm_disk_path }}'/>
+      <driver name='qemu' type='{{ guest_disk_format }}'/>
+      <source file='{{ guest_disk_path }}'/>
       <target dev='hda' bus='ide'/>
       <address type='drive' controller='0' bus='0' unit='0'/>
     </disk>
     <disk type='file' device='cdrom'>
-      <source file='{{ vm_iso }}' />
+      <source file='{{ guest_iso }}' />
       <target dev='hdb' bus='ide' />
       <readonly />
     </disk>
@@ -46,9 +46,9 @@
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </memballoon>
     <interface type='bridge'>
-      <source bridge='{{ vm_bridge }}'/>
+      <source bridge='{{ guest_bridge }}'/>
       <address type='pci' domain='0x000' bus='0x00' slot='0x03' function='0x0'/>
-      <mac address='{{ vm_mac }}'/>
+      <mac address='{{ guest_mac }}'/>
     </interface>
   </devices>
   <graphics type='vnc' port='-1' autoport='yes'/>

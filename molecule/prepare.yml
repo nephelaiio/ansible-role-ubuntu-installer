@@ -9,8 +9,6 @@
 
   hosts: molecule
 
-  connection: local
-
   gather_facts: false
 
   tasks:

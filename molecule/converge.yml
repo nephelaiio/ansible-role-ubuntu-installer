@@ -139,6 +139,19 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
+    - name: manage permissions for kvm guest disks
+      file:
+        path: "{{ guest_disk }}"
+        owner: libvirt-qemu
+        group: kvm
+        mode: 0640
+      vars:
+        guest_disk: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
+      loop_control:
+        loop_var: guest
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ guests }}"
+
     - name: create kvm guest
       virt:
         xml: "{{ xml_template }}"

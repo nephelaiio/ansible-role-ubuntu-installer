@@ -98,6 +98,10 @@
     - name: gather facts
       setup:
 
+    - name: check passwordless sudo
+      command: ls /
+      become: yes
+
     - name: gather partition info
       shell: "lsblk -l | grep /$"
       register: lsblk_output

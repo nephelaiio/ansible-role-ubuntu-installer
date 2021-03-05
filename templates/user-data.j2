@@ -47,6 +47,7 @@ autoinstall:
     disable_root: false
   late-commands:
     - /bin/echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/{{ ssh_user }}
+    - /bin/chmod 0640 /target/etc/sudoers.d/{{ ssh_user }}
     - /bin/echo 'ARRAY <ignore> devices=/dev/sda' >> /target/etc/mdadm/mdadm.conf
 {% if storage_layout == 'lvm' %}
     - curtin in-target --target=/target -- lvextend -l "+100%FREE" -r /dev/ubuntu-vg/ubuntu-lv

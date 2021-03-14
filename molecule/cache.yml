@@ -12,6 +12,17 @@
 
   tasks:
 
+    - name: install kvm requirements
+      apt:
+        name:
+          - qemu
+          - qemu-kvm
+          - qemu-efi
+          - libvirt-clients
+          - libvirt-daemon-system
+          - libvirt-daemon-system-systemd
+          - python3-libvirt
+
     - name: create molecule cache dir
       file:
         path: "{{ cache_dir }}"

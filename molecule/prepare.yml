@@ -100,14 +100,3 @@
         value: '1'
         state: present
         reload: True
-
-    - name: install kvm requirements
-      apt:
-        name:
-          - qemu
-          - qemu-kvm
-          - qemu-efi
-          - libvirt-clients
-          - libvirt-daemon-system
-          - libvirt-daemon-system-systemd
-          - python3-libvirt

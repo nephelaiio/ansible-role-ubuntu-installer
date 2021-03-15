@@ -12,24 +12,27 @@
 
   tasks:
 
-    - name: install kvm requirements
-      apt:
-        name:
-          - qemu
-          - qemu-kvm
-          - qemu-efi
-          - libvirt-clients
-          - libvirt-daemon-system
-          - libvirt-daemon-system-systemd
-          - python3-libvirt
+    - block:
 
-    - name: create molecule cache dir
-      file:
-        path: "{{ cache_dir }}"
-        state: directory
-        owner: libvirt-qemu
-        group: kvm
-        mode: 0755
+        - name: install kvm requirements
+          apt:
+            name:
+              - qemu
+              - qemu-kvm
+              - qemu-efi
+              - libvirt-clients
+              - libvirt-daemon-system
+              - libvirt-daemon-system-systemd
+              - python3-libvirt
+
+        - name: create molecule cache dir
+          file:
+            path: "{{ cache_dir }}"
+            state: directory
+            owner: libvirt-qemu
+            group: kvm
+            mode: 0755
+
       become: yes
 
     - name: test for presence of kvm key pair

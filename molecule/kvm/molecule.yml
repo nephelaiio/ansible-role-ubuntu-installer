@@ -7,7 +7,7 @@ dependency:
 driver:
   name: delegated
 platforms:
-  - name: instance
+  - name: ubuntu_installer
     user: ubuntu
     image: ami-03d315ad33b9d49c4
     instance_type: c5d.metal

@@ -48,7 +48,9 @@ autoinstall:
   late-commands:
     - /bin/echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/{{ ssh_user }}
     - /bin/chmod 0640 /target/etc/sudoers.d/{{ ssh_user }}
+{% if disk != '' %}
     - /bin/echo 'ARRAY <ignore> devices=/dev/sda' >> /target/etc/mdadm/mdadm.conf
+{% endif %}
 {% if storage_layout == 'lvm' %}
     - curtin in-target --target=/target -- lvextend -l "+100%FREE" -r /dev/ubuntu-vg/ubuntu-lv
 {% endif %}

@@ -40,7 +40,7 @@
     opts: loop
     fstype: iso9660
 
-- name: extract source iso files
+- name: copy iso files
   command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
   args:
     warn: no
@@ -64,12 +64,28 @@
     path: "{{ mntdir_dest.path }}"
     state: absent
 
+- name: detect debian installer
+  stat:
+    path: "{{ tmpdir_dest.path }}/dists/bionic/main/debian-installer"
+  register: debian_installer
+
+- name: set autodetected installer type
+  set_fact:
+    ubuntu_installer_type_default: "{{ (debian_installer.stat.exists | bool) | ternary('debian', 'live') }}"
+
+  when: ubuntu_installer_type is not defined
+
 - name: remove temporary mount fstab
   file:
     path: "{{ mntfile_dest.path }}"
     state: absent
 
-- include_tasks: live.yml
+- name: verify installer type
+  fail:
+    msg: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }} must be one of ['debian', 'live']"
+  when: (ubuntu_installer_type | default(ubuntu_installer_type_default)) not in ['debian', 'live']
+
+- include_tasks: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }}.yml"
 
 - name: remove temporary directories
   file:

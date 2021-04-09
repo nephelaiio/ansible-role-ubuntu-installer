@@ -23,6 +23,9 @@ iso_installers:
   focal:
     dest: "file://{{ cache_dir }}/focal-live.iso"
     url: "{{ focal_url | default('https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-live-server-amd64.iso') }}"
+  bionic:
+    dest: "file://{{ cache_dir }}/bionic-server.iso"
+    url: "{{ focal_url | default('http://cdimage.ubuntu.com/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso') }}"
 
 guests:
 
@@ -71,13 +74,42 @@ guests:
     installer_partitioning_method: lvm
     installer_mirror: us-east-1.ec2.archive.ubuntu.com
 
-
   - installer_hostname: focal-static-50g
     installer_ref: focal
     installer_disk_size: "{{ 50*(1024**3) }}"
     installer_interface:
       static: true
       ipaddress: "{{ __bridge_net | nthhost(5) }}"
+      network: "{{ __bridge_net | ipaddr('network') }}"
+      netmask: "{{ __bridge_net | ipaddr('netmask') }}"
+      gateway: "{{ bridge_host }}"
+      nameservers:
+        - 1.1.1.1
+        - 8.8.8.8
+    installer_partitioning_method: regular
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com
+
+  - installer_hostname: bionic-lvm-10g
+    installer_ref: bionic
+    installer_disk_size: "{{ 10*(1024**3) }}"
+    installer_interface:
+      static: true
+      ipaddress: "{{ __bridge_net | nthhost(6) }}"
+      network: "{{ __bridge_net | ipaddr('network') }}"
+      netmask: "{{ __bridge_net | ipaddr('netmask') }}"
+      gateway: "{{ bridge_host }}"
+      nameservers:
+        - 1.1.1.1
+        - 8.8.8.8
+    installer_partitioning_method: lvm
+    installer_mirror: us-east-1.ec2.archive.ubuntu.com
+
+  - installer_hostname: bionic-static-10g
+    installer_ref: bionic
+    installer_disk_size: "{{ 10*(1024**3) }}"
+    installer_interface:
+      static: true
+      ipaddress: "{{ __bridge_net | nthhost(7) }}"
       network: "{{ __bridge_net | ipaddr('network') }}"
       netmask: "{{ __bridge_net | ipaddr('netmask') }}"
       gateway: "{{ bridge_host }}"

@@ -1,0 +1,92 @@
+---
+- name: check isolinux configuration file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
+  register: isolinux_cfgdest
+  changed_when: false
+
+- name: configure isolinux
+  lineinfile:
+    path: "{{ isolinux_cfgdest.stdout }}"
+    regexp: 'timeout\s+[0-9]+'
+    line: 'timeout 1'
+
+- name: create seed file
+  template:
+    src: ubuntu.seed.j2
+    dest: "{{ tmpdir_dest.path }}/{{ ubuntu_installer_seed_file }}"
+  vars:
+    hostname: "{{ ubuntu_installer_hostname.split('.') | first }}"
+    host_domain: "{{ ubuntu_installer_hostname.split('.') }}"
+    domain: "{{ (host_domain | length > 1) | ternary(host_domain[1:] | join('.'), 'localdomain') }}"
+    username: "{{ ubuntu_installer_username }}"
+    password: "{{ ubuntu_installer_password }}"
+    ssh_keys: "{{ [ubuntu_installer_sshkey] | flatten }}"
+    late_command: "{{ ubuntu_installer_late_command | default('') }}"
+    interface: "{{ ubuntu_installer_interface }}"
+    disk: "{{ ubuntu_installer_disk | default('') }}"
+    mirror: "{{ ubuntu_installer_mirror }}"
+    security_mirror: "{{ ubuntu_installer_security_mirror }}"
+    partman_method: "{{ ubuntu_installer_partman_method }}"
+    packages: "{{ ubuntu_installer_packages }}"
+
+- name: retrieve seed file checksum
+  command: "md5sum {{ tmpdir_dest.path }}/{{ ubuntu_installer_seed_file }}"
+  register: seed_md5sum
+  changed_when: false
+
+- name: check isolinux boot file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
+  register: isolinux_bootdest
+  changed_when: false
+
+- name: compute isolinux file locations
+  set_fact:
+    vmlinuz_path: "/install/vmlinuz"
+    initrd_path: "/install/initrd.gz"
+    isolinux_path: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
+
+- name: set bootloader preseed configuration
+  template:
+    src: isolinux.debian.j2
+    dest: "{{ isolinux_path }}"
+  vars:
+    kernel_file: "{{ vmlinuz_path }}"
+    initrd_file: "{{ initrd_path }}"
+    preseed_url: "{{ ubuntu_installer_seed_url }}"
+    preseed_file: "{{ ubuntu_installer_seed_file }}"
+    preseed_checksum: "{{ seed_md5sum.stdout.split(' ') | first }}"
+
+- name: check isolinux bin file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
+  register: isolinux_bindest
+  changed_when: false
+
+- name: check isolinux boot cat file location
+  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name boot.cat"
+  register: isolinux_bootcatdest
+  changed_when: false
+
+- name: compute isolinux bin
+  set_fact:
+    isolinux_bin: "{{ isolinux_bindest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
+    isolinux_cat: "{{ isolinux_bootcatdest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
+
+- name: create ubuntu autoinstall iso
+  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
+  args:
+    chdir: "{{ tmpdir_dest.path }}"
+  vars:
+    mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
+    target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
+  changed_when: false
+  tags:
+    - skip_ansible_lint
+
+- name: make iso bootable
+  command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
+  changed_when: false
+
+- name: remove temporary directories
+  file:
+    path: "{{ tmpdir_dest.path }}"
+    state: absent

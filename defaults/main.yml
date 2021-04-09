@@ -18,7 +18,6 @@ ubuntu_installer_package_state: present
 ubuntu_installer_target_dir: "/tmp"
 ubuntu_installer_target_filename: "{{ ubuntu_installer_hostname }}.iso"
 ubuntu_installer_hostname: host.example.com
-ubuntu_installer_timezone: America/Costa_Rica
 ubuntu_installer_interface:  # override seed file network autoconfiguration
   static: false
 ubuntu_installer_interface_name: eno1  # should probably be overriden
@@ -30,6 +29,10 @@ ubuntu_installer_image_url: https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-l
 ubuntu_installer_iso_path: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.orig.iso"
 ubuntu_installer_partman_method: lvm  # [(lvm)|(regular)]
 ubuntu_installer_cloudinit: /nocloud
+ubuntu_installer_seed_file: ubuntu.seed
+ubuntu_installer_seed_url: ''
+# override installer type detection with ubuntu_installer type
+# ubuntu_installer_type: live | debian
 
 __ubuntu_installer_live_storage_map:
   lvm: lvm

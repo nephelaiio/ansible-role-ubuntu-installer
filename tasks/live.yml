@@ -49,7 +49,7 @@
 
     - name: configure isolinux bootloader
       template:
-        src: isolinux.live.txt.j2
+        src: isolinux.live.j2
         dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
       vars:
         kernel_file: /casper/vmlinuz

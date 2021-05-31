@@ -46,7 +46,7 @@
           lvol:
             vg: molecule
             lv: molecule
-            size: "100%PV"
+            size: "100%VG"
 
         - name: create molecule filesystem
           filesystem:

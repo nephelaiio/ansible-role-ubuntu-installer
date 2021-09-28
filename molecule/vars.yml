@@ -25,7 +25,7 @@ iso_installers:
     url: "{{ focal_url | default('https://releases.ubuntu.com/20.04.1/ubuntu-20.04.1-live-server-amd64.iso') }}"
   bionic:
     dest: "file://{{ cache_dir }}/bionic-server.iso"
-    url: "{{ focal_url | default('http://cdimage.ubuntu.com/releases/18.04/release/ubuntu-18.04.5-server-amd64.iso') }}"
+    url: "{{ focal_url | default('https://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04.5-server-amd64.iso') }}"
 
 guests:
 

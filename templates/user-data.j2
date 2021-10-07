@@ -15,9 +15,9 @@ autoinstall:
 {% if _interface.static | default('no') | bool %}
           addresses:
             - {{ _interface.ipaddress }}/{{ _interface_prefix }}
-          gateway4: {{ interface.gateway }}
+          gateway4: {{ _interface.gateway }}
           nameservers:
-            addresses: [ {{ interface.nameservers | join(',') }} ]
+            addresses: [ {{ _interface.nameservers | join(',') }} ]
 {% endif %}
   storage:
     layout:

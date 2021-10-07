@@ -101,8 +101,8 @@ chmod 440 /target/etc/sudoers.d/{{ _username }}; \
 sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT.*/GRUB_CMDLINE_LINUX_DEFAULT="nosplash"/' /target/etc/default/grub; \
 sed -i -e 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /target/etc/ssh/sshd_config; \
 sed -i -e 's/^#PermitRootLogin.*/PermitRootLogin no/' /target/etc/ssh/sshd_config; \
-{% if disk != '' %}
-echo "ARRAY <ignore> devices={{ disk }}" >> /target/etc/mdadm/mdadm.conf; \
+{% if _disk != '' %}
+echo "ARRAY <ignore> devices={{ _disk }}" >> /target/etc/mdadm/mdadm.conf; \
 {% endif %}
 in-target chown -R {{ _username }}:{{ _username }} /home/{{ _username }}/.ssh; \
 in-target apt-get update; \

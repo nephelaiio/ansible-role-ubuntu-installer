@@ -16,21 +16,21 @@ d-i debconf/language                                        string      en_US:en
 
 # network settings
 d-i netcfg/choose_interface                                 select      auto
-{% if interface.static %}
+{% if _interface.static %}
 d-i netcfg/disable_autoconfig                               boolean     true
-d-i netcfg/get_ipaddress                                    string      {{ interface.ipaddress }}
-d-i netcfg/get_netmask                                      string      {{ interface.netmask }}
-d-i netcfg/get_gateway                                      string      {{ interface.gateway }}
-d-i netcfg/get_nameservers                                  string      {{ interface.nameservers | join(' ') }}
+d-i netcfg/get_ipaddress                                    string      {{ _interface.ipaddress }}
+d-i netcfg/get_netmask                                      string      {{ _interface.netmask }}
+d-i netcfg/get_gateway                                      string      {{ _interface.gateway }}
+d-i netcfg/get_nameservers                                  string      {{ _interface.nameservers | join(' ') }}
 d-i netcfg/confirm_static                                   boolean     true
 {% endif %}
 d-i netcfg/dhcp_timeout                                     string      5
-d-i netcfg/get_hostname                                     string      {{ hostname }}
-d-i netcfg/get_domain                                       string      {{ domain }}
+d-i netcfg/get_hostname                                     string      {{ _hostname }}
+d-i netcfg/get_domain                                       string      {{ _domain }}
 
 # mirror settings
 d-i mirror/country                                          string      manual
-d-i mirror/http/hostname                                    string      {{ mirror }}
+d-i mirror/http/hostname                                    string      {{ _mirror }}
 d-i mirror/http/directory                                   string      /ubuntu
 d-i mirror/http/proxy                                       string
 
@@ -41,9 +41,9 @@ d-i clock-setup/utc                                         boolean     true
 # user account setup
 d-i passwd/root-login                                       boolean     false
 d-i passwd/make-user                                        boolean     true
-d-i passwd/user-fullname                                    string      {{ username }}
-d-i passwd/username                                         string      {{ username }}
-d-i passwd/user-password-crypted                            password    {{ password }}
+d-i passwd/user-fullname                                    string      {{ _username }}
+d-i passwd/username                                         string      {{ _username }}
+d-i passwd/user-password-crypted                            password    {{ _password }}
 d-i passwd/user-uid                                         string
 d-i user-setup/allow-password-weak                          boolean     false
 d-i passwd/user-default-groups                              string      adm cdrom dialout lpadmin plugdev sambashare
@@ -54,7 +54,7 @@ d-i apt-setup/restricted                                    boolean     true
 d-i apt-setup/universe                                      boolean     true
 d-i apt-setup/backports                                     boolean     true
 d-i apt-setup/services-select                               multiselect security
-d-i apt-setup/security_host                                 string      {{ security_mirror }}
+d-i apt-setup/security_host                                 string      {{ _security_mirror }}
 d-i apt-setup/security_path                                 string      /ubuntu
 tasksel tasksel/first                                       multiselect openssh-server
 d-i pkgsel/upgrade                                          select      safe-upgrade
@@ -62,9 +62,9 @@ d-i pkgsel/update-policy                                    select      none
 d-i pkgsel/updatedb                                         boolean     true
 
 # disk partitioning
-{% if disk != '' %}
-d-i partman-auto/disk                                       string      {{ disk }}
-d-i grub-installer/bootdev                                  string      {{ disk }}
+{% if _disk != '' %}
+d-i partman-auto/disk                                       string      {{ _disk }}
+d-i grub-installer/bootdev                                  string      {{ _disk }}
 {% endif %}
 d-i partman/confirm_write_new_label                         boolean     true
 d-i partman/choose_partition                                select      finish
@@ -78,7 +78,7 @@ d-i partman-auto-lvm/no_boot                                boolean     true
 d-i partman-md/device_remove_md                             boolean     true
 d-i partman-md/confirm                                      boolean     true
 d-i partman-md/confirm_nooverwrite                          boolean     true
-d-i partman-auto/method                                     string      {{ partman_method }}
+d-i partman-auto/method                                     string      {{ _partman_method }}
 d-i partman-auto-lvm/guided_size                            string      max
 d-i partman-partitioning/confirm_write_new_label            boolean     true
 
@@ -91,22 +91,22 @@ d-i finish-install/reboot_in_progress                       note
 d-i finish-install/keep-consoles                            boolean     false
 d-i cdrom-detect/eject                                      boolean     true
 
-d-i preseed/late_command                                    string      mkdir -p /target/home/{{ username }}/.ssh; \
-{% for sshkey in ssh_keys %}
-/bin/sh -c "echo '{{ sshkey }}' >> /target/home/{{ username }}/.ssh/authorized_keys"; \
+d-i preseed/late_command                                    string      mkdir -p /target/home/{{ _username }}/.ssh; \
+{% for sshkey in _ssh_keys %}
+/bin/sh -c "echo '{{ sshkey }}' >> /target/home/{{ _username }}/.ssh/authorized_keys"; \
 {% endfor %}
 echo "blacklist ipv6" >> /target/etc/modprobe.d/blacklist.conf; \
-echo "{{ username }} ALL=(ALL) NOPASSWD: ALL" >> /target/etc/sudoers.d/{{ username }}; \
-chmod 440 /target/etc/sudoers.d/{{ username }}; \
+echo "{{ _username }} ALL=(ALL) NOPASSWD: ALL" >> /target/etc/sudoers.d/{{ _username }}; \
+chmod 440 /target/etc/sudoers.d/{{ _username }}; \
 sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT.*/GRUB_CMDLINE_LINUX_DEFAULT="nosplash"/' /target/etc/default/grub; \
 sed -i -e 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /target/etc/ssh/sshd_config; \
 sed -i -e 's/^#PermitRootLogin.*/PermitRootLogin no/' /target/etc/ssh/sshd_config; \
 {% if disk != '' %}
 echo "ARRAY <ignore> devices={{ disk }}" >> /target/etc/mdadm/mdadm.conf; \
 {% endif %}
-in-target chown -R {{ username }}:{{ username }} /home/{{ username }}/.ssh; \
+in-target chown -R {{ _username }}:{{ _username }} /home/{{ _username }}/.ssh; \
 in-target apt-get update; \
-{% if packages != [] %}
-in-target apt-get install -y {{ packages | join(' ') }}; \
+{% if _packages != [] %}
+in-target apt-get install -y {{ _packages | join(' ') }}; \
 {% endif %}
 in-target update-grub;

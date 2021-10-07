@@ -9,48 +9,48 @@ autoinstall:
     network:
       version: 2
       ethernets:
-        {{ interface_name }}:
-          dhcp4: {{ not (interface.static | default('yes')) }}
-          dhcp6: {{ not (interface.static | default('yes')) }}
-{% if interface.static | default('no') | bool %}
+        {{ _interface_name }}:
+          dhcp4: {{ not (_interface.static | default('yes')) }}
+          dhcp6: {{ not (_interface.static | default('yes')) }}
+{% if _interface.static | default('no') | bool %}
           addresses:
-            - {{ interface.ipaddress }}/{{ interface_prefix }}
+            - {{ _interface.ipaddress }}/{{ _interface_prefix }}
           gateway4: {{ interface.gateway }}
           nameservers:
             addresses: [ {{ interface.nameservers | join(',') }} ]
 {% endif %}
   storage:
     layout:
-      name: "{{ storage_layout }}"
-{% if disk != '' %}
+      name: "{{ _storage_layout }}"
+{% if _disk != '' %}
       match:
-        path: {{ disk }}
+        path: {{ _disk }}
 {% endif %}
     config:
-      {{ storage_config | to_nice_yaml(indent=2) | indent(6) }}
+      {{ _storage_config | to_nice_yaml(indent=2) | indent(6) }}
   apt:
     primary:
       - arches: [default]
-        uri: http://{{ mirror_primary }}/ubuntu/
+        uri: http://{{ _mirror_primary }}/ubuntu/
     security:
       - arches: [default]
-        uri: http://{{ mirror_security }}/ubuntu/
+        uri: http://{{ _mirror_security }}/ubuntu/
   identity:
-    hostname: {{ fqdn }}
-    username: {{ ssh_user }}
-    password: {{ ssh_pass }}
+    hostname: {{ _fqdn }}
+    username: {{ _ssh_user }}
+    password: {{ _ssh_pass }}
   ssh:
     install-server: yes
     authorized-keys: {{ ssh_keys }}
-  packages: [ {{ packages | join(',')}} ]
+  packages: [ {{ _packages | join(',')}} ]
   user-data:
     disable_root: false
   late-commands:
     - /bin/echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/{{ ssh_user }}
     - /bin/chmod 0640 /target/etc/sudoers.d/{{ ssh_user }}
-{% if disk != '' %}
+{% if _disk != '' %}
     - /bin/echo 'ARRAY <ignore> devices=/dev/sda' >> /target/etc/mdadm/mdadm.conf
 {% endif %}
-{% if storage_layout == 'lvm' %}
+{% if _storage_layout == 'lvm' %}
     - curtin in-target --target=/target -- lvextend -l "+100%FREE" -r /dev/ubuntu-vg/ubuntu-lv
 {% endif %}

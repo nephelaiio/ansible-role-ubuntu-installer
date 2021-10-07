@@ -41,13 +41,13 @@ autoinstall:
     password: {{ _ssh_pass }}
   ssh:
     install-server: yes
-    authorized-keys: {{ ssh_keys }}
+    authorized-keys: {{ _ssh_keys }}
   packages: [ {{ _packages | join(',')}} ]
   user-data:
     disable_root: false
   late-commands:
-    - /bin/echo '{{ ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/{{ ssh_user }}
-    - /bin/chmod 0640 /target/etc/sudoers.d/{{ ssh_user }}
+    - /bin/echo '{{ _ssh_user }} ALL=(ALL:ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/{{ _ssh_user }}
+    - /bin/chmod 0640 /target/etc/sudoers.d/{{ _ssh_user }}
 {% if _disk != '' %}
     - /bin/echo 'ARRAY <ignore> devices=/dev/sda' >> /target/etc/mdadm/mdadm.conf
 {% endif %}

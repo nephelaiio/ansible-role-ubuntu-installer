@@ -4,6 +4,18 @@
     name: "{{ ubuntu_installer_packages }}"
     state: "{{ ubuntu_installer_package_state }}"
 
+- name: detect echo binary
+  stat:
+    path: "/usr/bin/echo"
+  register: binary_linux
+
+- name: echo binary standardization
+  file:
+    src: "/bin/echo"
+    dest: "/usr/bin/echo"
+    state: link
+  when: not (binary_linux.stat.exists | bool)
+
 - name: create temporary target directory
   tempfile:
     state: directory

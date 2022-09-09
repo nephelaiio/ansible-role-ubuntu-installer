@@ -55,6 +55,18 @@
     preseed_file: "{{ ubuntu_installer_seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout.split(' ') | first }}"
 
+- name: detect echo binary
+  stat:
+    path: "{{ tmpdir_dest.path }}/usr/bin/echo"
+  register: binary_linux
+
+- name: echo binary standardization
+  file:
+    src: "{{ tmpdir_dest.path }}/bin/echo"
+    dest: "{{ tmpdir_dest.path }}/usr/bin/echo"
+    state: link
+  when: not (binary_linux.stat.exists | bool)
+
 - name: check isolinux bin file location
   command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
   register: isolinux_bindest

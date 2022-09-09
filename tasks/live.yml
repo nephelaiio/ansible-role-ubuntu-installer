@@ -69,6 +69,18 @@
         initrd_file: /casper/initrd
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
 
+    - name: detect echo binary
+      stat:
+        path: "{{ tmpdir_dest.path }}/usr/bin/echo"
+      register: binary_linux
+
+    - name: echo binary standardization
+      file:
+        src: "{{ tmpdir_dest.path }}/bin/echo"
+        dest: "{{ tmpdir_dest.path }}/usr/bin/echo"
+        state: link
+      when: not (binary_linux.stat.exists | bool)
+
     - name: create isolinux autoinstall iso
       command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
       args:

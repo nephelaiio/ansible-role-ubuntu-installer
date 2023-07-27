@@ -23,7 +23,7 @@
           - molecule
       when: not (aws_provision | default('no')) | bool
 
-    - name: Create ec2 instance
+    - name: Create EC2 instance
       when: (aws_provision | default('no')) | bool
       block:
 

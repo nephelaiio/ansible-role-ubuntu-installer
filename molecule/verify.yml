@@ -2,7 +2,7 @@
 - import_playbook: inventory.yml
 
 
-- name: Verify iso creation
+- name: Verify ISO creation
 
   hosts: molecule
 
@@ -13,7 +13,7 @@
 
   tasks:
 
-    - name: Retrieve guest iso status
+    - name: Retrieve guest ISO status
       ansible.builtin.stat:
         path: "{{ cache_dir }}/{{ guest.installer_hostname }}.iso"
       loop_control:
@@ -22,7 +22,7 @@
       loop: "{{ guests }}"
       register: guest_isos
 
-    - name: Verify iso creation
+    - name: Verify ISO creation
       ansible.builtin.fail:
         msg: unable to find iso
       loop_control:
@@ -32,7 +32,7 @@
       when: not (guest_iso.stat.exists | bool)
 
 
-- name: add guests to inventory
+- name: Add guests to inventory
 
   hosts: molecule
 

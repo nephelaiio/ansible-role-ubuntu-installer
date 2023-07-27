@@ -2,7 +2,7 @@
 - import_playbook: inventory.yml
 
 
-- name: Spawn kvm guests
+- name: Spawn KVM guests
 
   hosts: molecule
 
@@ -76,7 +76,7 @@
       include_role:
         name: nephelaiio.ubuntu_installer
       vars:
-        ubuntu_installer_interface_name: enp0s3
+        ubuntu_installer_interface_name: enp1s0
         ubuntu_installer_target_dir: "{{ cache_dir }}"
         ubuntu_installer_image_url: "{{ iso_installers[guest.installer_ref].dest }}"
         ubuntu_installer_hostname: "{{ guest.installer_hostname }}"
@@ -93,7 +93,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Destroy kvm guest
+    - name: Destroy KVM guest
       virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
@@ -103,7 +103,7 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: Undefine kvm guest
+    - name: Undefine KVM guest
       virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
@@ -113,7 +113,7 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: Destroy kvm guest disks
+    - name: Destroy KVM guest disks
       file:
         path: "{{ guest_disk }}"
         state: absent
@@ -124,7 +124,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Create kvm guest disks
+    - name: Create KVM guest disks
       command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
       args:
         creates: "{{ guest_disk }}"
@@ -136,7 +136,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Manage permissions for kvm guest disks
+    - name: Manage permissions for KVM guest disks
       file:
         path: "{{ guest_disk }}"
         owner: libvirt-qemu
@@ -149,7 +149,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Create kvm guest
+    - name: Create KVM guest
       virt:
         xml: "{{ xml_template }}"
         command: define
@@ -166,7 +166,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Start kvm guest
+    - name: Start KVM guest
       virt:
         name: "{{ guest_hostname }}"
         state: running

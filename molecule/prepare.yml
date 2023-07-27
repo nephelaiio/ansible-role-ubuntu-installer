@@ -55,7 +55,7 @@
       ansible.builtin.command: "ip link set dev {{ bridge_name }} up"
       failed_when: false
 
-    - name: Dnat ssh preroute
+    - name: DNAT ssh preroute
       ansible.builtin.iptables:
         table: nat
         chain: PREROUTING
@@ -69,7 +69,7 @@
         label: "{{ item.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: Dnat ssh output
+    - name: DNAT ssh output
       ansible.builtin.iptables:
         table: nat
         chain: OUTPUT
@@ -101,7 +101,7 @@
         state: present
         reload: True
 
-    - name: Install kvm requirements
+    - name: Install KVM requirements
       ansible.builtin.apt:
         name:
           - qemu

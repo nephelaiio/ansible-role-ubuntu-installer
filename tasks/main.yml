@@ -42,8 +42,7 @@
 
 - name: Copy iso files
   ansible.builtin.command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
-  tags:
-    - skip_ansible_lint
+  tags:  skip_ansible_lint
 
 - name: Unmount ubuntu source iso
   ansible.posix.mount:
@@ -62,28 +61,13 @@
     path: "{{ mntdir_dest.path }}"
     state: absent
 
-- name: Detect debian installer
-  ansible.builtin.stat:
-    path: "{{ tmpdir_dest.path }}/dists/bionic/main/debian-installer"
-  register: debian_installer
-
-- name: Set autodetected installer type
-  ansible.builtin.set_fact:
-    ubuntu_installer_type_default: "{{ (debian_installer.stat.exists | bool) | ternary('debian', 'live') }}"
-  when: Ubuntu_installer_type is not defined
-
 - name: Remove temporary mount fstab
   ansible.builtin.file:
     path: "{{ mntfile_dest.path }}"
     state: absent
 
-- name: Verify installer type
-  ansible.builtin.fail:
-    msg: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }} must be one of ['debian', 'live']"
-  when: (ubuntu_installer_type | default(ubuntu_installer_type_default)) not in ['debian', 'live']
-
 - name: Run version installer tasks
-  ansible.builtin.include_tasks: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }}.yml"
+  ansible.builtin.include_tasks: live.yml
 
 - name: Remove temporary directories
   ansible.builtin.file:

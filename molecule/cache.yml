@@ -18,11 +18,11 @@
         state: directory
         mode: 0777
 
-    - name: Test for presence of kvm key pair
+    - name: Test for presence of KVM key pair
       ansible.builtin.stat:
         path: "{{ kvm_key_pair_path }}"
       register: kvm_key_pair_local
 
-    - name: Create kvm key pair
+    - name: Create KVM key pair
       ansible.builtin.command: "ssh-keygen -t rsa -f {{ kvm_key_pair_path }} -q -P '' -C ''"
       when: not kvm_key_pair_local.stat.exists

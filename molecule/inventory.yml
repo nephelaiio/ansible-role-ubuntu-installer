@@ -1,5 +1,5 @@
 ---
-- name: add hosts to molecule inventory
+- name: Add hosts to molecule inventory
 
   hosts: localhost
 
@@ -14,19 +14,20 @@
 
   tasks:
 
-    - name: add localhost to molecule group
+    - name: Add localhost to molecule group
       ansible.builtin.add_host:
         name: localhost
+        ansible_user: "{{ lookup('ansible.builtin.env', 'USER') }}"
         ansible_connection: local
         groups:
           - molecule
       when: not (aws_provision | default('no')) | bool
 
-    - name: create ec2 instance
+    - name: Create ec2 instance
       when: (aws_provision | default('no')) | bool
       block:
 
-        - name: query info for existing instances
+        - name: Query info for existing instances
           community.aws.ec2_instance_info:
             region: "{{ aws_env_region }}"
             filters:
@@ -35,11 +36,11 @@
               "instance-state-name": [ "pending", "running" ]
           register: ec2_instance_query
 
-        - name: initialize instance metadata
+        - name: Initialize instance metadata
           ansible.builtin.set_fact:
             ec2_instance_facts: {}
 
-        - name: build existing instance metadata
+        - name: Build existing instance metadata
           ansible.builtin.set_fact:
             ec2_instance_facts: "{{ ec2_instance_facts | combine({ item.tags.Name: item}) }}"
           loop_control:
@@ -49,7 +50,7 @@
             - item.tags is defined
             - item.tags.Name is defined
 
-        - name: add hosts to inventory
+        - name: Add hosts to inventory
           ansible.builtin.add_host:
             hostname: "{{ item.key }}"
             ansible_user: "{{ item.value.tags.ansible_user }}"

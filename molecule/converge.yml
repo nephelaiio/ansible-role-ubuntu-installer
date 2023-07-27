@@ -2,7 +2,7 @@
 - import_playbook: inventory.yml
 
 
-- name: spawn kvm guests
+- name: Spawn kvm guests
 
   hosts: molecule
 
@@ -13,59 +13,57 @@
 
   pre_tasks:
 
-    - name: update apt package cache
+    - name: Update apt package cache
       apt:
         update_cache: true
-      when: (ansible_os_family | lower) == 'debian'
+      when: ansible_os_family == 'Debian'
 
-    - name: install disk utils
+    - name: Install disk utils
       apt:
         name:
           - parted
           - lvm2
 
-    - name: select EC2 NVMe disks
+    - name: Select EC2 NVMe disks
       set_fact:
         ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
       vars:
         ec2_disk: "/dev/{{ item.key }}"
-      when:
-        - item.value.model == 'Amazon EC2 NVMe Instance Storage'
+      when:  item.value.model == 'Amazon EC2 NVMe Instance Storage'
       loop_control:
         label: "{{ item.key }}"
       loop: "{{ ansible_devices | dict2items }}"
 
-    - block:
+    - name: manage molecule lvm
+      when: (ec2_disks is defined) and (ec2_disks | length) > 0
+      block:
 
-        - name: create molecule vg
+        - name: Create molecule vg
           lvg:
             vg: molecule
             pvs: "{{ ','.join(ec2_disks) }}"
 
-        - name: create molecule lv
+        - name: Create molecule lv
           lvol:
             vg: molecule
             lv: molecule
             size: "100%VG"
 
-        - name: create molecule filesystem
+        - name: Create molecule filesystem
           filesystem:
             fstype: ext4
             dev: /dev/mapper/molecule-molecule
 
-        - name: mount molecule filesystem
+        - name: Mount molecule filesystem
           mount:
             path: "{{ cache_dir }}"
             src: /dev/mapper/molecule-molecule
             fstype: ext4
             state: mounted
-      when:
-        - ec2_disks is defined
-        - (ec2_disks | length) > 0
 
   tasks:
 
-    - name: cache installer files
+    - name: Cache installer files
       get_url:
         url: "{{ iso.value.url }}"
         dest: "{{ iso.value.dest | urlsplit('path') }}"
@@ -74,7 +72,7 @@
         label: "{{ iso.key }}"
       loop: "{{ iso_installers | dict2items }}"
 
-    - name: build guest installer isos
+    - name: Build guest installer isos
       include_role:
         name: nephelaiio.ubuntu_installer
       vars:
@@ -95,7 +93,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: destroy kvm guest
+    - name: Destroy kvm guest
       virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
@@ -105,7 +103,7 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: undefine kvm guest
+    - name: Undefine kvm guest
       virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
@@ -115,7 +113,7 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: destroy kvm guest disks
+    - name: Destroy kvm guest disks
       file:
         path: "{{ guest_disk }}"
         state: absent
@@ -126,7 +124,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: create kvm guest disks
+    - name: Create kvm guest disks
       command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
       args:
         creates: "{{ guest_disk }}"
@@ -138,7 +136,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: manage permissions for kvm guest disks
+    - name: Manage permissions for kvm guest disks
       file:
         path: "{{ guest_disk }}"
         owner: libvirt-qemu
@@ -151,7 +149,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: create kvm guest
+    - name: Create kvm guest
       virt:
         xml: "{{ xml_template }}"
         command: define
@@ -168,7 +166,7 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: start kvm guest
+    - name: Start kvm guest
       virt:
         name: "{{ guest_hostname }}"
         state: running

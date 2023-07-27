@@ -1,5 +1,5 @@
 ---
-- name: prepare cache
+- name: Prepare cache
 
   hosts: localhost
 
@@ -12,17 +12,17 @@
 
   tasks:
 
-    - name: create molecule cache dir
+    - name: Create molecule cache dir
       ansible.builtin.file:
         path: "{{ cache_dir }}"
         state: directory
         mode: 0777
 
-    - name: test for presence of kvm key pair
+    - name: Test for presence of kvm key pair
       ansible.builtin.stat:
         path: "{{ kvm_key_pair_path }}"
       register: kvm_key_pair_local
 
-    - name: create kvm key pair
+    - name: Create kvm key pair
       ansible.builtin.command: "ssh-keygen -t rsa -f {{ kvm_key_pair_path }} -q -P '' -C ''"
       when: not kvm_key_pair_local.stat.exists

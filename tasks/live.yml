@@ -56,7 +56,7 @@
 
     - name: Configure grub bootloader
       ansible.builtin.lineinfile:
-        backrefs: yes
+        backrefs: true
         regexp: '^(\s*linux\s+/casper/vmlinuz\s+quiet)'
         line: '\1 autoinstall ds=noucloud\\;s=/cdrom{{ nocloud_dir }}/'
         validate: "grub-script-check %s"

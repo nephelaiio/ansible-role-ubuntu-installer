@@ -6,7 +6,7 @@
 
   hosts: molecule
 
-  become: yes
+  become: true
 
   vars_files:
     - ./vars.yml
@@ -15,7 +15,7 @@
 
     - name: update apt package cache
       apt:
-        update_cache: yes
+        update_cache: true
       when: (ansible_os_family | lower) == 'debian'
 
     - name: install disk utils

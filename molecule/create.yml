@@ -187,7 +187,7 @@
 
   hosts: provision
 
-  gather_facts: no
+  gather_facts: false
 
   vars_files:
     - ./vars.yml
@@ -205,11 +205,11 @@
             instance_type: "{{ instance_type }}"
             security_groups: "{{ security_group }}"
             image_id: "{{ image }}"
-            wait: yes
+            wait: true
             wait_timeout: 600
             vpc_subnet_id: "{{ subnet_id }}"
             network:
-              assign_public_ip: yes
+              assign_public_ip: true
             tags:
               ansible_environment: "{{ aws_env_name }}"
               ansible_project: "{{ aws_project_name }}"

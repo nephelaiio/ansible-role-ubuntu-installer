@@ -42,8 +42,6 @@
 
 - name: Copy iso files
   ansible.builtin.command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
-  args:
-    warn: no
   tags:
     - skip_ansible_lint
 

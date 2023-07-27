@@ -6,7 +6,7 @@
 
   hosts: molecule
 
-  become: yes
+  become: true
 
   vars_files:
     - vars.yml
@@ -14,7 +14,7 @@
   tasks:
 
     - name: destroy kvm guest
-      virt:
+      community.libvirt.virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -24,7 +24,7 @@
       failed_when: false
 
     - name: undefine kvm guest
-      virt:
+      community.libvirt.virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -34,7 +34,7 @@
       failed_when: false
 
     - name: destroy kvm guest disks
-      file:
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         state: absent
       vars:
@@ -45,7 +45,7 @@
       loop: "{{ guests }}"
 
     - name: dnat ssh preroute
-      iptables:
+      ansible.builtin.iptables:
         table: nat
         chain: PREROUTING
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -59,7 +59,7 @@
       loop: "{{ guests }}"
 
     - name: dnat ssh output
-      iptables:
+      ansible.builtin.iptables:
         table: nat
         chain: OUTPUT
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -73,7 +73,7 @@
       loop: "{{ guests }}"
 
     - name: unmasquerade bridge
-      iptables:
+      ansible.builtin.iptables:
         table: nat
         chain: POSTROUTING
         out_interface: "{{ ansible_default_ipv4.interface }}"
@@ -84,9 +84,9 @@
         state: present
 
     - name: destroy dummy bridge
-      command: "nmcli con del {{ bridge_name }}"
+      ansible.builtin.command: "nmcli con del {{ bridge_name }}"
       failed_when: false
 
     - name: destroy dummy interface
-      command: "ip link del {{ iface_name }}"
+      ansible.builtin.command: "ip link del {{ iface_name }}"
       failed_when: false

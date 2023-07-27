@@ -2,3 +2,5 @@
 roles:
   - nephelaiio.plugins
   - nephelaiio.pip
+collections:
+  - community.aws

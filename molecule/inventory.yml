@@ -25,7 +25,7 @@
     - block:
 
         - name: query info for existing instances
-          ec2_instance_info:
+          community.aws.ec2_instance_info:
             region: "{{ aws_env_region }}"
             filters:
               "tag:ansible_environment": "{{ aws_env_name }}"

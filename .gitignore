@@ -8,3 +8,4 @@ playbook.retry
 **/*.iso
 **/*.img
 **/id_rsa*
+.venv/

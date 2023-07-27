@@ -123,7 +123,7 @@
         key_material: "{{ lookup('file', molecule_key_pair_path + '.pub') }}"
 
     - name: query info for existing instances
-      ec2_instance_info:
+      community.aws.ec2_instance_info:
         region: "{{ aws_env_region }}"
         filters:
           "tag:ansible_environment": "{{ aws_env_name }}"
@@ -217,7 +217,7 @@
           when: create | bool
 
         - name: wait for instance startup
-          ec2_instance_info:
+          community.aws.ec2_instance_info:
             region: "{{ aws_env_region }}"
             filters:
               "tag:ansible_environment": "{{ aws_env_name }}"

@@ -1,17 +1,17 @@
 ---
-- name: check isolinux configuration file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
+- name: Check isolinux configuration file location
+  ansible.builtin.command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.cfg"
   register: isolinux_cfgdest
   changed_when: false
 
-- name: configure isolinux
-  lineinfile:
+- name: Configure isolinux
+  ansible.builtin.lineinfile:
     path: "{{ isolinux_cfgdest.stdout }}"
     regexp: 'timeout\s+[0-9]+'
     line: 'timeout 1'
 
-- name: create seed file
-  template:
+- name: Create seed file
+  ansible.builtin.template:
     src: ubuntu.seed.j2
     dest: "{{ tmpdir_dest.path }}/{{ ubuntu_installer_seed_file }}"
   vars:
@@ -28,24 +28,24 @@
     _partman_method: "{{ ubuntu_installer_partman_method }}"
     _packages: "{{ ubuntu_installer_packages }}"
 
-- name: retrieve seed file checksum
-  command: "md5sum {{ tmpdir_dest.path }}/{{ ubuntu_installer_seed_file }}"
+- name: Retrieve seed file checksum
+  ansible.builtin.command: "md5sum {{ tmpdir_dest.path }}/{{ ubuntu_installer_seed_file }}"
   register: seed_md5sum
   changed_when: false
 
-- name: check isolinux boot file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
+- name: Check isolinux boot file location
+  ansible.builtin.command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name txt.cfg"
   register: isolinux_bootdest
   changed_when: false
 
-- name: compute isolinux file locations
-  set_fact:
+- name: Compute isolinux file locations
+  ansible.builtin.set_fact:
     vmlinuz_path: "/install/vmlinuz"
     initrd_path: "/install/initrd.gz"
     isolinux_path: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
 
-- name: set bootloader preseed configuration
-  template:
+- name: Set bootloader preseed configuration
+  ansible.builtin.template:
     src: isolinux.debian.j2
     dest: "{{ isolinux_path }}"
   vars:
@@ -55,23 +55,23 @@
     preseed_file: "{{ ubuntu_installer_seed_file }}"
     preseed_checksum: "{{ seed_md5sum.stdout.split(' ') | first }}"
 
-- name: check isolinux bin file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
+- name: Check isolinux bin file location
+  ansible.builtin.command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name isolinux.bin"
   register: isolinux_bindest
   changed_when: false
 
-- name: check isolinux boot cat file location
-  command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name boot.cat"
+- name: Check isolinux boot cat file location
+  ansible.builtin.command: "find {{ tmpdir_dest.path }} -maxdepth 2 -name boot.cat"
   register: isolinux_bootcatdest
   changed_when: false
 
-- name: compute isolinux bin
-  set_fact:
+- name: Compute isolinux bin
+  ansible.builtin.set_fact:
     isolinux_bin: "{{ isolinux_bindest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
     isolinux_cat: "{{ isolinux_bootcatdest.stdout | regex_replace(tmpdir_dest.path + '/', '') }}"
 
-- name: create ubuntu autoinstall iso
-  command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
+- name: Create ubuntu autoinstall iso
+  ansible.builtin.command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
   args:
     chdir: "{{ tmpdir_dest.path }}"
   vars:
@@ -81,11 +81,11 @@
   tags:
     - skip_ansible_lint
 
-- name: make iso bootable
-  command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
+- name: Make iso bootable
+  ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
   changed_when: false
 
-- name: remove temporary directories
-  file:
+- name: Remove temporary directories
+  ansible.builtin.file:
     path: "{{ tmpdir_dest.path }}"
     state: absent

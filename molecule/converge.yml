@@ -14,18 +14,18 @@
   pre_tasks:
 
     - name: Update apt package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       when: ansible_os_family == 'Debian'
 
     - name: Install disk utils
-      apt:
+      ansible.builtin.apt:
         name:
           - parted
           - lvm2
 
     - name: Select EC2 NVMe disks
-      set_fact:
+      ansible.builtin.set_fact:
         ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
       vars:
         ec2_disk: "/dev/{{ item.key }}"
@@ -39,32 +39,33 @@
       block:
 
         - name: Create molecule vg
-          lvg:
+          community.general.lvg:
             vg: molecule
             pvs: "{{ ','.join(ec2_disks) }}"
 
         - name: Create molecule lv
-          lvol:
+          community.general.lvol:
             vg: molecule
             lv: molecule
             size: "100%VG"
 
         - name: Create molecule filesystem
-          filesystem:
+          community.general.filesystem:
             fstype: ext4
             dev: /dev/mapper/molecule-molecule
 
         - name: Mount molecule filesystem
-          mount:
+          ansible.posix.mount:
             path: "{{ cache_dir }}"
             src: /dev/mapper/molecule-molecule
             fstype: ext4
             state: mounted
+            fstab: /dev/null
 
   tasks:
 
     - name: Cache installer files
-      get_url:
+      ansible.builtin.get_url:
         url: "{{ iso.value.url }}"
         dest: "{{ iso.value.dest | urlsplit('path') }}"
       loop_control:
@@ -73,7 +74,7 @@
       loop: "{{ iso_installers | dict2items }}"
 
     - name: Build guest installer isos
-      include_role:
+      ansible.builtin.include_role:
         name: nephelaiio.ubuntu_installer
       vars:
         ubuntu_installer_interface_name: enp1s0
@@ -94,7 +95,7 @@
       loop: "{{ guests }}"
 
     - name: Destroy KVM guest
-      virt:
+      community.libvirt.virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -104,7 +105,7 @@
       failed_when: false
 
     - name: Undefine KVM guest
-      virt:
+      community.libvirt.virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -114,7 +115,7 @@
       failed_when: false
 
     - name: Destroy KVM guest disks
-      file:
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         state: absent
       vars:
@@ -125,7 +126,7 @@
       loop: "{{ guests }}"
 
     - name: Create KVM guest disks
-      command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
+      ansible.builtin.command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
       args:
         creates: "{{ guest_disk }}"
       vars:
@@ -137,7 +138,7 @@
       loop: "{{ guests }}"
 
     - name: Manage permissions for KVM guest disks
-      file:
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         owner: libvirt-qemu
         group: kvm
@@ -150,7 +151,7 @@
       loop: "{{ guests }}"
 
     - name: Create KVM guest
-      virt:
+      community.libvirt.virt:
         xml: "{{ xml_template }}"
         command: define
       vars:
@@ -167,7 +168,7 @@
       loop: "{{ guests }}"
 
     - name: Start KVM guest
-      virt:
+      community.libvirt.virt:
         name: "{{ guest_hostname }}"
         state: running
       vars:

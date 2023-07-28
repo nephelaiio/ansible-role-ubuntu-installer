@@ -32,24 +32,29 @@
     prefix: mnt
   register: mntdir_dest
 
-- name: Mount ubuntu source iso
-  ansible.posix.mount:
-    src: "{{ ubuntu_installer_iso_path }}"
-    path: "{{ mntdir_dest.path }}"
-    state: mounted
-    opts: loop
-    fstype: iso9660
+- name: Copy ISO contents
+  block:
 
-- name: Copy iso files
-  ansible.builtin.command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
-  tags:  skip_ansible_lint
+    - name: Mount ubuntu source iso
+      ansible.posix.mount:
+        src: "{{ ubuntu_installer_iso_path }}"
+        path: "{{ mntdir_dest.path }}"
+        state: mounted
+        opts: loop
+        fstype: iso9660
 
-- name: Unmount ubuntu source iso
-  ansible.posix.mount:
-    src: "{{ ubuntu_installer_iso_path }}"
-    path: "{{ mntdir_dest.path }}"
-    state: absent
-    opts: loop
+    - name: Copy ISO files
+      ansible.builtin.command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
+      tags:  skip_ansible_lint
+
+  always:
+
+    - name: Unmount ubuntu source iso
+      ansible.posix.mount:
+        src: "{{ ubuntu_installer_iso_path }}"
+        path: "{{ mntdir_dest.path }}"
+        state: absent
+        opts: loop
 
 - name: Remove ubuntu source iso
   ansible.builtin.file:

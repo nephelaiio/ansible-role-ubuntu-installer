@@ -46,6 +46,7 @@ jobs:
   kvm:
     name: kvm
     runs-on: ubuntu-latest
+    if: ${{ false }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2

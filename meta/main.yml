@@ -4,7 +4,7 @@ galaxy_info:
   author: nephelaiio
   description: An Ansible role to create Ubuntu auto install images
   license: MIT
-  min_ansible_version: 2.2
+  min_ansible_version: "2.2"
   platforms:
     - name: Ubuntu
       versions:

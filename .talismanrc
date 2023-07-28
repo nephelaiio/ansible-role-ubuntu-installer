@@ -1,0 +1,6 @@
+
+fileignoreconfig:
+- filename: poetry.lock
+  ignore_detectors: [filecontent]
+- filename: molecule/templates/vm.xml.j2
+  ignore_detectors: [filecontent]

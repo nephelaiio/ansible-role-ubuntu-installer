@@ -5,7 +5,7 @@
 - import_playbook: inventory.yml
 
 
-- name: wait for provisioning to complete
+- name: Wait for provisioning to complete
 
   hosts: molecule
 
@@ -13,50 +13,50 @@
 
   tasks:
 
-    - name: wait for connection
-      wait_for_connection:
+    - name: Wait for connection
+      ansible.builtin.wait_for_connection:
         sleep: 10
         timeout: 600
 
 
-- name: prepare host networking
+- name: Prepare host networking
 
   hosts: molecule
 
-  become: yes
+  become: true
 
   vars_files:
     - vars.yml
 
   tasks:
 
-    - name: install python3
-      apt:
+    - name: Install python3
+      ansible.builtin.apt:
         name: python3
-        update_cache: yes
+        update_cache: true
 
-    - name: create dummy bridge
-      command: "ip link add {{ bridge_name }} type bridge"
+    - name: Create dummy bridge
+      ansible.builtin.command: "ip link add {{ bridge_name }} type bridge"
       failed_when: false
 
-    - name: create dummy interface
-      command: "ip link add {{ iface_name }} type dummy"
+    - name: Create dummy interface
+      ansible.builtin.command: "ip link add {{ iface_name }} type dummy"
       failed_when: false
 
-    - name: create dummy bridge slave
-      command: "ip link set {{ iface_name }} master {{ bridge_name }}"
+    - name: Create dummy bridge slave
+      ansible.builtin.command: "ip link set {{ iface_name }} master {{ bridge_name }}"
       failed_when: false
 
-    - name: set bridge interface ip address
-      command: "ip addr add {{ bridge_host }}/{{ bridge_prefix }} dev {{ bridge_name }}"
+    - name: Set bridge interface ip address
+      ansible.builtin.command: "ip addr add {{ bridge_host }}/{{ bridge_prefix }} dev {{ bridge_name }}"
       failed_when: false
 
-    - name: start bridge interface
-      command: "ip link set dev {{ bridge_name }} up"
+    - name: Start bridge interface
+      ansible.builtin.command: "ip link set dev {{ bridge_name }} up"
       failed_when: false
 
-    - name: dnat ssh preroute
-      iptables:
+    - name: DNAT ssh preroute
+      ansible.builtin.iptables:
         table: nat
         chain: PREROUTING
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -69,8 +69,8 @@
         label: "{{ item.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: dnat ssh output
-      iptables:
+    - name: DNAT ssh output
+      ansible.builtin.iptables:
         table: nat
         chain: OUTPUT
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -83,8 +83,8 @@
         label: "{{ item.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: masquerade bridge
-      iptables:
+    - name: Masquerade bridge
+      ansible.builtin.iptables:
         table: nat
         chain: POSTROUTING
         out_interface: "{{ ansible_default_ipv4.interface }}"
@@ -94,15 +94,15 @@
         protocol: all
         state: present
 
-    - name: enable ipv4 forwarding
-      sysctl:
+    - name: Enable ipv4 forwarding
+      ansible.builtin.sysctl:
         name: net.ipv4.ip_forward
         value: '1'
         state: present
         reload: True
 
-    - name: install kvm requirements
-      apt:
+    - name: Install KVM requirements
+      ansible.builtin.apt:
         name:
           - qemu
           - qemu-kvm

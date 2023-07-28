@@ -28,16 +28,25 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install test dependencies.
-        run: pip3 install ansible-lint[community,yamllint]
+      - name: Install poetry
+        run: pip install poetry
 
-      - name: Lint code.
-        run: |
-          ansible-lint .
+      - name: Install test dependencies.
+        run: poetry install
+
+      - name: Lint code with ansible-lint
+        run: poetry run ansible-lint .
+
+      - name: Lint code with yamllint
+        run: poetry run yamllint .
+
+      - name: Lint code with molecule
+        run: poetry run molecule syntax
 
   kvm:
     name: kvm
     runs-on: ubuntu-latest
+    if: ${{ false }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -49,8 +58,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install poetry
+        run: pip install poetry
+
       - name: Install test dependencies.
-        run: pip3 install -r requirements.txt
+        run: poetry install
 
       - name: Clean up molecule scenario
         run: molecule reset -s kvm

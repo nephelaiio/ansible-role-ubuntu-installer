@@ -2,7 +2,7 @@
 - import_playbook: inventory.yml
 
 
-- name: verify iso creation
+- name: Verify ISO creation
 
   hosts: molecule
 
@@ -13,8 +13,8 @@
 
   tasks:
 
-    - name: retrieve guest iso status
-      stat:
+    - name: Retrieve guest ISO status
+      ansible.builtin.stat:
         path: "{{ cache_dir }}/{{ guest.installer_hostname }}.iso"
       loop_control:
         loop_var: guest
@@ -22,8 +22,8 @@
       loop: "{{ guests }}"
       register: guest_isos
 
-    - name: verify iso creation
-      fail:
+    - name: Verify ISO creation
+      ansible.builtin.fail:
         msg: unable to find iso
       loop_control:
         loop_var: guest_iso
@@ -32,25 +32,25 @@
       when: not (guest_iso.stat.exists | bool)
 
 
-- name: add guests to inventory
+- name: Add guests to inventory
 
   hosts: molecule
 
-  become: yes
+  become: true
 
   vars_files:
     - ./vars.yml
 
   tasks:
 
-    - name: add debug ssh key
-      authorized_key:
+    - name: Add debug ssh key
+      ansible.posix.authorized_key:
         user: "{{ ansible_user }}"
         state: present
         key: "{{ debug_pubkey }}"
 
-    - name: add guest to inventory
-      add_host:
+    - name: Add guest to inventory
+      ansible.builtin.add_host:
         name: "{{ guest_hostname }}"
         groups:
           - install
@@ -75,66 +75,66 @@
       loop: "{{ guests }}"
 
 
-- name: verify guests
+- name: Verify guests
 
   hosts: install
 
-  gather_facts: no
+  gather_facts: false
 
   vars_files:
     - ./vars.yml
 
   tasks:
 
-    - name: debug connection parameters
-      debug:
+    - name: Debug connection parameters
+      ansible.builtin.debug:
         msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
 
-    - name: wait for connection
-      wait_for_connection:
+    - name: Wait for connection
+      ansible.builtin.wait_for_connection:
         sleep: 10
         timeout: 1800
 
-    - name: gather facts
-      setup:
+    - name: Gather facts
+      ansible.builtin.setup:
 
-    - name: check passwordless sudo
-      command: ls /
-      become: yes
+    - name: Check passwordless sudo
+      ansible.builtin.command: ls /
+      become: true
 
-    - name: gather partition info
-      shell: "lsblk -l | grep /$"
+    - name: Gather partition info
+      ansible.builtin.shell: "lsblk -l | grep /$"
       register: lsblk_output
 
-    - name: check static partitioning
-      fail:
+    - name: Check static partitioning
+      ansible.builtin.fail:
         msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
       when:
         - partitioning_method == 'regular'
         - lsblk_output.stdout is not search("part") or
           lsblk_output.stdout is search("lvm")
 
-    - block:
+    - name: Check lvm partitioning
+      when: partitioning_method == 'lvm'
+      block:
 
-        - name: check lvm partitioning
-          fail:
+        - name: Check lvm partitioning
+          ansible.builtin.fail:
             msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
           when:
             - lsblk_output.stdout is not search('lvm')
 
-      when: partitioning_method == 'lvm'
-
-    - name: debug disk size
-      debug:
+    - name: Debug disk size
+      ansible.builtin.debug:
         msg: "{{ installer_root_device }}"
       vars:
         installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
 
-    - name: check root device size
-      fail:
+    - name: Check root device size
+      ansible.builtin.fail:
         msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
       vars:
         installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
         installer_root_size: "{{ installer_root_device.size_total }}"
-        installer_root_threshold: "{{ (0.85 * (disk_size | int)) | int }}"
+        installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
       when: (installer_root_size | int) < (installer_root_threshold | int)

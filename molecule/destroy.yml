@@ -34,7 +34,9 @@
 
   tasks:
 
-    - block:
+    - name: destroy ec2 security groups
+      delegate_to: localhost
+      block:
 
         - name: query info for existing subnets
           amazon.aws.ec2_vpc_subnet_info:
@@ -56,5 +58,3 @@
           loop_control:
             label: "{{ subnet.subnet_id }}"
           loop: "{{ q('subelements', subnet_info.results, 'subnets') }}"
-
-      delegate_to: localhost

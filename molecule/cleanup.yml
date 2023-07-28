@@ -2,7 +2,7 @@
 - import_playbook: inventory.yml
 
 
-- name: destroy kvm guests
+- name: Destroy KVM guests
 
   hosts: molecule
 
@@ -13,8 +13,8 @@
 
   tasks:
 
-    - name: destroy kvm guest
-      virt:
+    - name: Destroy KVM guest
+      community.libvirt.virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -23,8 +23,8 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: undefine kvm guest
-      virt:
+    - name: Undefine KVM guest
+      community.libvirt.virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -33,8 +33,8 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: destroy kvm guest disks
-      file:
+    - name: Destroy KVM guest disks
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         state: absent
       vars:
@@ -44,8 +44,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: dnat ssh preroute
-      iptables:
+    - name: DNAT SSH preroute
+      ansible.builtin.iptables:
         table: nat
         chain: PREROUTING
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -58,8 +58,8 @@
         label: "{{ item.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: dnat ssh output
-      iptables:
+    - name: DNAT SSH output
+      ansible.builtin.iptables:
         table: nat
         chain: OUTPUT
         destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
@@ -72,8 +72,8 @@
         label: "{{ item.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: unmasquerade bridge
-      iptables:
+    - name: Unmasquerade bridge
+      ansible.builtin.iptables:
         table: nat
         chain: POSTROUTING
         out_interface: "{{ ansible_default_ipv4.interface }}"
@@ -83,10 +83,10 @@
         protocol: all
         state: present
 
-    - name: destroy dummy bridge
-      command: "nmcli con del {{ bridge_name }}"
+    - name: Destroy dummy bridge
+      ansible.builtin.command: "nmcli con del {{ bridge_name }}"
       failed_when: false
 
-    - name: destroy dummy interface
-      command: "ip link del {{ iface_name }}"
+    - name: Destroy dummy interface
+      ansible.builtin.command: "ip link del {{ iface_name }}"
       failed_when: false

@@ -2,71 +2,70 @@
 - import_playbook: inventory.yml
 
 
-- name: spawn kvm guests
+- name: Spawn KVM guests
 
   hosts: molecule
 
-  become: yes
+  become: true
 
   vars_files:
     - ./vars.yml
 
   pre_tasks:
 
-    - name: update apt package cache
-      apt:
-        update_cache: yes
-      when: (ansible_os_family | lower) == 'debian'
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_os_family == 'Debian'
 
-    - name: install disk utils
-      apt:
+    - name: Install disk utils
+      ansible.builtin.apt:
         name:
           - parted
           - lvm2
 
-    - name: select EC2 NVMe disks
-      set_fact:
+    - name: Select EC2 NVMe disks
+      ansible.builtin.set_fact:
         ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
       vars:
         ec2_disk: "/dev/{{ item.key }}"
-      when:
-        - item.value.model == 'Amazon EC2 NVMe Instance Storage'
+      when:  item.value.model == 'Amazon EC2 NVMe Instance Storage'
       loop_control:
         label: "{{ item.key }}"
       loop: "{{ ansible_devices | dict2items }}"
 
-    - block:
+    - name: manage molecule lvm
+      when: (ec2_disks is defined) and (ec2_disks | length) > 0
+      block:
 
-        - name: create molecule vg
-          lvg:
+        - name: Create molecule vg
+          community.general.lvg:
             vg: molecule
             pvs: "{{ ','.join(ec2_disks) }}"
 
-        - name: create molecule lv
-          lvol:
+        - name: Create molecule lv
+          community.general.lvol:
             vg: molecule
             lv: molecule
             size: "100%VG"
 
-        - name: create molecule filesystem
-          filesystem:
+        - name: Create molecule filesystem
+          community.general.filesystem:
             fstype: ext4
             dev: /dev/mapper/molecule-molecule
 
-        - name: mount molecule filesystem
-          mount:
+        - name: Mount molecule filesystem
+          ansible.posix.mount:
             path: "{{ cache_dir }}"
             src: /dev/mapper/molecule-molecule
             fstype: ext4
             state: mounted
-      when:
-        - ec2_disks is defined
-        - (ec2_disks | length) > 0
+            fstab: /dev/null
 
   tasks:
 
-    - name: cache installer files
-      get_url:
+    - name: Cache installer files
+      ansible.builtin.get_url:
         url: "{{ iso.value.url }}"
         dest: "{{ iso.value.dest | urlsplit('path') }}"
       loop_control:
@@ -74,11 +73,11 @@
         label: "{{ iso.key }}"
       loop: "{{ iso_installers | dict2items }}"
 
-    - name: build guest installer isos
-      include_role:
+    - name: Build guest installer isos
+      ansible.builtin.include_role:
         name: nephelaiio.ubuntu_installer
       vars:
-        ubuntu_installer_interface_name: enp0s3
+        ubuntu_installer_interface_name: enp1s0
         ubuntu_installer_target_dir: "{{ cache_dir }}"
         ubuntu_installer_image_url: "{{ iso_installers[guest.installer_ref].dest }}"
         ubuntu_installer_hostname: "{{ guest.installer_hostname }}"
@@ -95,8 +94,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: destroy kvm guest
-      virt:
+    - name: Destroy KVM guest
+      community.libvirt.virt:
         command: destroy
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -105,8 +104,8 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: undefine kvm guest
-      virt:
+    - name: Undefine KVM guest
+      community.libvirt.virt:
         command: undefine
         name: "{{ guest.installer_hostname }}"
       loop_control:
@@ -115,8 +114,8 @@
       loop: "{{ guests }}"
       failed_when: false
 
-    - name: destroy kvm guest disks
-      file:
+    - name: Destroy KVM guest disks
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         state: absent
       vars:
@@ -126,8 +125,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: create kvm guest disks
-      command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
+    - name: Create KVM guest disks
+      ansible.builtin.command: "qemu-img create {{ guest_disk }} {{ guest_disk_size }}"
       args:
         creates: "{{ guest_disk }}"
       vars:
@@ -138,8 +137,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: manage permissions for kvm guest disks
-      file:
+    - name: Manage permissions for KVM guest disks
+      ansible.builtin.file:
         path: "{{ guest_disk }}"
         owner: libvirt-qemu
         group: kvm
@@ -151,8 +150,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: create kvm guest
-      virt:
+    - name: Create KVM guest
+      community.libvirt.virt:
         xml: "{{ xml_template }}"
         command: define
       vars:
@@ -168,8 +167,8 @@
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
-    - name: start kvm guest
-      virt:
+    - name: Start KVM guest
+      community.libvirt.virt:
         name: "{{ guest_hostname }}"
         state: running
       vars:

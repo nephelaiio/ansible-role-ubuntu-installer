@@ -1,23 +1,18 @@
 ---
-- name: create cloud-init dir
-  file:
+- name: Create cloud-init dir
+  ansible.builtin.file:
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}"
     state: directory
 
-- block:
-
-    - name: get interface info
-      set_fact:
-        ubuntu_installer_interface_ip: "{{ ubuntu_installer_interface.ipaddress }}/{{ ubuntu_installer_interface.netmask }}"
-
-    - name: set interface prefix
-      set_fact:
-        ubuntu_installer_interface_prefix: "{{ ubuntu_installer_interface_ip | ipaddr('prefix') }}"
-
+- name: Set interface prefix
+  ansible.builtin.set_fact:
+    ubuntu_installer_interface_prefix: "{{ ubuntu_installer_interface_ip | ipaddr('prefix') }}"
+  vars:
+    ubuntu_installer_interface_ip: "{{ ubuntu_installer_interface.ipaddress }}/{{ ubuntu_installer_interface.netmask }}"
   when: ubuntu_installer_interface.static | bool
 
-- name: create cloud-init user data
-  template:
+- name: Create cloud-init user data
+  ansible.builtin.template:
     src: "user-data.j2"
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}/user-data"
   vars:
@@ -35,20 +30,22 @@
     _storage_layout: "{{ __ubuntu_installer_live_storage_map[ubuntu_installer_partman_method] }}"
     _storage_config: "{{ ubuntu_installer_live_storage | default(__ubuntu_installer_live_storage[ubuntu_installer_partman_method]) }}"
 
-- name: create cloud-init meta data
-  file:
+- name: Create cloud-init meta data
+  ansible.builtin.file:
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}/meta-data"
     state: touch
 
-- name: detect isolinux bootloader
-  stat:
+- name: Detect isolinux bootloader
+  ansible.builtin.stat:
     path: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
   register: isolinux
 
-- block:
+- name: Build isolinux autoinstall iso
+  when: isolinux.stat.exists | bool
+  block:
 
-    - name: configure isolinux bootloader
-      template:
+    - name: Configure isolinux bootloader
+      ansible.builtin.template:
         src: isolinux.live.j2
         dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
       vars:
@@ -57,9 +54,9 @@
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
       when: isolinux.stat.exists
 
-    - name: configure grub bootloader
-      lineinfile:
-        backrefs: yes
+    - name: Configure grub bootloader
+      ansible.builtin.lineinfile:
+        backrefs: true
         regexp: '^(\s*linux\s+/casper/vmlinuz\s+quiet)'
         line: '\1 autoinstall ds=noucloud\\;s=/cdrom{{ nocloud_dir }}/'
         validate: "grub-script-check %s"
@@ -69,8 +66,8 @@
         initrd_file: /casper/initrd
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
 
-    - name: create isolinux autoinstall iso
-      command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
+    - name: Create isolinux autoinstall iso
+      ansible.builtin.command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
       args:
         chdir: "{{ tmpdir_dest.path }}"
       vars:
@@ -80,30 +77,30 @@
       tags:
         - skip_ansible_lint
 
-  when: isolinux.stat.exists | bool
+- name: Build grup autoinstall iso
+  when: not (isolinux.stat.exists | bool)
+  block:
 
-- block:
-
-    - name: fail on unsupported iso
-      fail:
+    - name: Fail on unsupported iso
+      ansible.builtin.fail:
         msg: "unsupported grub bootloader iso"
 
-    - name: gather iso partition info
-      parted:
+    - name: Gather iso partition info
+      community.general.system.parted:
         device: "{{ ubuntu_installer_iso_path }}"
         unit: B
       register: iso_parted
 
-    - name: get select efi partition
-      set_fact:
+    - name: Get select efi partition
+      ansible.builtin.set_fact:
         iso_efi_partition: "{{ iso_partition }}"
       loop_control:
         loop_var: iso_partition
         label: "{{ efi_partition.name }}"
       when: iso_partition.flags | intersection(['esp'])
 
-    - name: create grub autoinstall iso
-      command: " {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
+    - name: Create grub autoinstall iso
+      ansible.builtin.command: " {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
       args:
         chdir: "{{ tmpdir_dest.path }}"
       vars:
@@ -113,8 +110,6 @@
       tags:
         - skip_ansible_lint
 
-  when: not (isolinux.stat.exists | bool)
-
-- name: make iso bootable
-  command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
+- name: Make iso bootable
+  ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
   changed_when: false

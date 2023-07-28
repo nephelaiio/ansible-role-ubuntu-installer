@@ -1,93 +1,80 @@
 ---
-- name: install packages
-  package:
+- name: Install packages
+  ansible.builtin.package:
     name: "{{ ubuntu_installer_packages }}"
     state: "{{ ubuntu_installer_package_state }}"
 
-- name: create temporary target directory
-  tempfile:
+- name: Create temporary target directory
+  ansible.builtin.tempfile:
     state: directory
     prefix: iso
   register: tmpdir_dest
 
-- name: create image target directory
-  file:
+- name: Create image target directory
+  ansible.builtin.file:
     state: directory
     path: "{{ ubuntu_installer_target_dir }}"
 
-- name: fetch ubuntu source iso
-  get_url:
+- name: Fetch ubuntu source iso
+  ansible.builtin.get_url:
     url: "{{ ubuntu_installer_image_url }}"
     dest: "{{ ubuntu_installer_iso_path }}"
 
-- name: create temporary mount fstab
-  tempfile:
+- name: Create temporary mount fstab
+  ansible.builtin.tempfile:
     state: directory
     prefix: fstab
   register: mntfile_dest
 
-- name: create temporary mount directory
-  tempfile:
+- name: Create temporary mount directory
+  ansible.builtin.tempfile:
     state: directory
     prefix: mnt
   register: mntdir_dest
 
-- name: mount ubuntu source iso
-  mount:
-    src: "{{ ubuntu_installer_iso_path }}"
-    path: "{{ mntdir_dest.path }}"
-    state: mounted
-    opts: loop
-    fstype: iso9660
+- name: Copy ISO contents
+  block:
 
-- name: copy iso files
-  command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
-  args:
-    warn: no
-  tags:
-    - skip_ansible_lint
+    - name: Mount ubuntu source iso
+      ansible.posix.mount:
+        src: "{{ ubuntu_installer_iso_path }}"
+        path: "{{ mntdir_dest.path }}"
+        state: mounted
+        opts: loop
+        fstype: iso9660
 
-- name: unmount ubuntu source iso
-  mount:
-    src: "{{ ubuntu_installer_iso_path }}"
-    path: "{{ mntdir_dest.path }}"
-    state: absent
-    opts: loop
+    - name: Copy ISO files
+      ansible.builtin.command: "cp -a {{ mntdir_dest.path }}/. {{ tmpdir_dest.path }}/"
+      tags:  skip_ansible_lint
 
-- name: remove ubuntu source iso
-  file:
+  always:
+
+    - name: Unmount ubuntu source iso
+      ansible.posix.mount:
+        src: "{{ ubuntu_installer_iso_path }}"
+        path: "{{ mntdir_dest.path }}"
+        state: absent
+        opts: loop
+
+- name: Remove ubuntu source iso
+  ansible.builtin.file:
     path: "{{ ubuntu_installer_iso_path }}"
     state: absent
 
-- name: remove temporary mount directory
-  file:
+- name: Remove temporary mount directory
+  ansible.builtin.file:
     path: "{{ mntdir_dest.path }}"
     state: absent
 
-- name: detect debian installer
-  stat:
-    path: "{{ tmpdir_dest.path }}/dists/bionic/main/debian-installer"
-  register: debian_installer
-
-- name: set autodetected installer type
-  set_fact:
-    ubuntu_installer_type_default: "{{ (debian_installer.stat.exists | bool) | ternary('debian', 'live') }}"
-
-  when: ubuntu_installer_type is not defined
-
-- name: remove temporary mount fstab
-  file:
+- name: Remove temporary mount fstab
+  ansible.builtin.file:
     path: "{{ mntfile_dest.path }}"
     state: absent
 
-- name: verify installer type
-  fail:
-    msg: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }} must be one of ['debian', 'live']"
-  when: (ubuntu_installer_type | default(ubuntu_installer_type_default)) not in ['debian', 'live']
+- name: Run version installer tasks
+  ansible.builtin.include_tasks: live.yml
 
-- include_tasks: "{{ ubuntu_installer_type | default(ubuntu_installer_type_default) }}.yml"
-
-- name: remove temporary directories
-  file:
+- name: Remove temporary directories
+  ansible.builtin.file:
     path: "{{ tmpdir_dest.path }}"
     state: absent

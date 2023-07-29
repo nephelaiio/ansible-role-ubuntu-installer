@@ -27,9 +27,9 @@ provisioner:
           molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso') }}"
           cache_dir: "/tmp/{{ molecule_distro }}"
 
-          bridge_net: "{{ '192.168.255.0/24' | ipv4('network/prefix') }}"
-          bridge_host: "{{ bridge_net | nthhost(1) }}"
-          bridge_prefix: "{{ bridge_net | ipaddr('prefix') }}"
+          bridge_net: "{{ '192.168.255.0/24' | ansible.utils.ipv4('network/prefix') }}"
+          bridge_host: "{{ bridge_net | ansible.utils.nthhost(1) }}"
+          bridge_prefix: "{{ bridge_net | ansible.utils.ipaddr('prefix') }}"
           bridge_name: "{{ molecule_distro }}br0"
           bridge_iface: "{{ molecule_distro }}0"
 

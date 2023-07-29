@@ -68,9 +68,34 @@
         msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
 
     - name: Wait for connection
-      ansible.builtin.wait_for_connection:
-        sleep: 10
-        timeout: 1800
+      block:
+
+        - name: Wait for host
+          ansible.builtin.wait_for_connection:
+            sleep: 10
+            timeout: 600
+
+      rescue:
+
+        - name: Ping hosts
+          ansible.builtin.command: "ping {{ ansible_host }}"
+          register: guest_ping
+          ignore_errors: true
+
+        - name: Debug ping result
+          ansible.builtin.debug:
+            var:guest_ping
+
+        - name: Query host interfaces
+          ansible.builtin.command: "/usr/sbin/ip address show"
+          register: host_addresses
+          delegate_to: localhost
+          run_once: true
+
+        - name: Debug host interfaces
+          ansible.builtin.debug:
+            var: host_addresses
+          run_once: true
 
     - name: Gather facts
       ansible.builtin.setup:

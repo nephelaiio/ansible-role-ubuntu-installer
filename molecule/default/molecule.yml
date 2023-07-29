@@ -103,8 +103,8 @@ scenario:
   test_sequence:
     - dependency
     - cleanup
-    - create
     - prepare
+    - create
     - converge
     - verify
     - cleanup

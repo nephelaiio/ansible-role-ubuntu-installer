@@ -13,16 +13,6 @@
           - parted
           - lvm2
 
-    - name: Select EC2 NVMe disks
-      ansible.builtin.set_fact:
-        ec2_disks: "{{ ec2_disks | default([]) + [ec2_disk] }}"
-      vars:
-        ec2_disk: "/dev/{{ item.key }}"
-      when:  item.value.model == 'Amazon EC2 NVMe Instance Storage'
-      loop_control:
-        label: "{{ item.key }}"
-      loop: "{{ ansible_devices | dict2items }}"
-
     - name: manage molecule lvm
       when: (ec2_disks is defined) and (ec2_disks | length) > 0
       block:

@@ -37,11 +37,8 @@ jobs:
       - name: Install test dependencies.
         run: poetry install
 
-      - name: Clean up molecule scenario
-        run: molecule reset -s kvm
-
       - name: Run Molecule tests.
-        run: molecule test -s kvm
+        run: poetry run molecule test
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

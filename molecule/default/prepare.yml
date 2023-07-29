@@ -72,6 +72,5 @@
           - libvirt-clients
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
-          - libvirt-dev
           - python3-libvirt
       when: ansible_os_family == 'Debian'

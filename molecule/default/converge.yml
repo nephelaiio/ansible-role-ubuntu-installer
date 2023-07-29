@@ -1,22 +1,11 @@
 ---
-- import_playbook: inventory.yml
-
-
 - name: Spawn KVM guests
 
-  hosts: molecule
+  hosts: localhost
 
   become: true
 
-  vars_files:
-    - ./vars.yml
-
   pre_tasks:
-
-    - name: Update apt package cache
-      ansible.builtin.apt:
-        update_cache: true
-      when: ansible_os_family == 'Debian'
 
     - name: Install disk utils
       ansible.builtin.apt:
@@ -66,12 +55,8 @@
 
     - name: Cache installer files
       ansible.builtin.get_url:
-        url: "{{ iso.value.url }}"
-        dest: "{{ iso.value.dest | urlsplit('path') }}"
-      loop_control:
-        loop_var: iso
-        label: "{{ iso.key }}"
-      loop: "{{ iso_installers | dict2items }}"
+        url: "{{ iso_installer.url }}"
+        dest: "{{ iso_installer.dest | urlsplit('path') }}"
 
     - name: Build guest installer isos
       ansible.builtin.include_role:
@@ -79,16 +64,14 @@
       vars:
         ubuntu_installer_interface_name: enp1s0
         ubuntu_installer_target_dir: "{{ cache_dir }}"
-        ubuntu_installer_image_url: "{{ iso_installers[guest.installer_ref].dest }}"
+        ubuntu_installer_image_url: "{{ guest.installer_image_url }}"
         ubuntu_installer_hostname: "{{ guest.installer_hostname }}"
         ubuntu_installer_username: molecule
         ubuntu_installer_password: "{{ 'molecule' | password_hash('sha512') }}"
         ubuntu_installer_sshkey:
-          - "{{ lookup('file', kvm_key_pair_path + '.pub') }}"
-          - "{{ debug_pubkey }}"
+          - "{{ lookup('file', kvm_keypair + '.pub') }}"
         ubuntu_installer_interface: "{{ guest.installer_interface }}"
         ubuntu_installer_partman_method: "{{ guest.installer_partitioning_method }}"
-        ubuntu_installer_mirror: "{{ guest.installer_mirror | default('archive.ubuntu.com') }}"
       loop_control:
         loop_var: guest
         label: "{{ guest.installer_hostname }}"

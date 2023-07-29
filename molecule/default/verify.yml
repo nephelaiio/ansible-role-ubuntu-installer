@@ -70,10 +70,10 @@
     - name: Wait for connection
       block:
 
-        - name: Wait for host
+        - name: Wait for guest
           ansible.builtin.wait_for_connection:
             sleep: 10
-            timeout: 600
+            timeout: 300
 
       rescue:
 

@@ -38,7 +38,7 @@ jobs:
         run: poetry install
 
       - name: Run Molecule tests.
-        run: poetry run molecule --debug test
+        run: poetry run molecule test
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

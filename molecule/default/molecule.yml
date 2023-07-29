@@ -17,7 +17,8 @@ provisioner:
   log: true
   config_options:
     defaults:
-      callback_whitelist: profile_tasks
+      interpreter_python: auto_silent
+      callback_whitelist: profile_tasks, timer, yaml
       host_key_checking: false
   inventory:
     hosts:
@@ -46,9 +47,9 @@ provisioner:
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | nthhost(2) }}"
-                network: "{{ bridge_net | ipaddr('network') }}"
-                netmask: "{{ bridge_net | ipaddr('netmask') }}"
+                ipaddress: "{{ bridge_net | ansible.utils.nthhost(2) }}"
+                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
                 gateway: "{{ bridge_host }}"
                 nameservers:
                   - 1.1.1.1
@@ -60,9 +61,9 @@ provisioner:
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | nthhost(3) }}"
-                network: "{{ bridge_net | ipaddr('network') }}"
-                netmask: "{{ bridge_net | ipaddr('netmask') }}"
+                ipaddress: "{{ bridge_net | ansible.utils.nthhost(3) }}"
+                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
                 gateway: "{{ bridge_host }}"
                 nameservers:
                   - 1.1.1.1
@@ -74,9 +75,9 @@ provisioner:
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | nthhost(4) }}"
-                network: "{{ bridge_net | ipaddr('network') }}"
-                netmask: "{{ bridge_net | ipaddr('netmask') }}"
+                ipaddress: "{{ bridge_net | ansible.utils.nthhost(4) }}"
+                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
                 gateway: "{{ bridge_host }}"
                 nameservers:
                   - 1.1.1.1
@@ -88,9 +89,9 @@ provisioner:
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | nthhost(5) }}"
-                network: "{{ bridge_net | ipaddr('network') }}"
-                netmask: "{{ bridge_net | ipaddr('netmask') }}"
+                ipaddress: "{{ bridge_net | ansible.utils.nthhost(5) }}"
+                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
                 gateway: "{{ bridge_host }}"
                 nameservers:
                   - 1.1.1.1

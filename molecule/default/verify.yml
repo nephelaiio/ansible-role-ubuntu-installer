@@ -84,7 +84,7 @@
 
         - name: Debug ping result
           ansible.builtin.debug:
-            var:guest_ping
+            var: guest_ping
 
         - name: Query host interfaces
           ansible.builtin.command: "/usr/sbin/ip address show"

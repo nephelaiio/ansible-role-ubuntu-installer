@@ -17,11 +17,13 @@
         path: "{{ cache_dir }}"
         state: directory
         mode: 0777
+      become: false
 
-    - name: Create KVM key pair
+    - name: Create KVM keypair
       ansible.builtin.command:
         cmd: "ssh-keygen -t rsa -f {{ kvm_keypair }} -q -P '' -C ''"
         creates: "{{ kvm_keypair }}"
+      become: false
 
     - name: Create dummy bridge
       ansible.builtin.command: "ip link add {{ bridge_name }} type bridge"

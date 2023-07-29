@@ -99,16 +99,3 @@ provisioner:
 
 verifier:
   name: ansible
-scenario:
-  test_sequence:
-    - dependency
-    - lint
-    - cleanup
-    - destroy
-    - syntax
-    - create
-    - prepare
-    - converge
-    - verify
-    - cleanup
-    - destroy

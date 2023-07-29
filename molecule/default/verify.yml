@@ -73,7 +73,7 @@
         - name: Wait for guest
           ansible.builtin.wait_for_connection:
             sleep: 10
-            timeout: 300
+            timeout: 1200
 
       rescue:
 

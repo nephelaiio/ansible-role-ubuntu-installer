@@ -102,10 +102,8 @@ verifier:
 scenario:
   test_sequence:
     - dependency
-    - cleanup
     - prepare
     - create
     - converge
     - verify
     - cleanup
-    - destroy

@@ -2,7 +2,7 @@
 name: Molecule
 
 on:
-  push:
+  pull_request:
     branches:
       - master
   schedule:
@@ -17,7 +17,6 @@ jobs:
   molecule:
     name: molecule
     runs-on: ubuntu-latest
-    if: ${{ false }}
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2

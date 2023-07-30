@@ -17,6 +17,12 @@ jobs:
   molecule:
     name: molecule
     runs-on: libvirt
+    strategy:
+      matrix:
+        include:
+          - distro: focal
+            url: https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso
+
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -42,3 +48,5 @@ jobs:
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_ISO: ${{ matrix.url }}

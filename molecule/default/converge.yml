@@ -43,7 +43,7 @@
 
   tasks:
 
-    - name: Cache installer files
+    - name: Cache installer iso
       ansible.builtin.get_url:
         url: "{{ iso_installer.url }}"
         dest: "{{ iso_installer.dest | urlsplit('path') }}"
@@ -54,7 +54,7 @@
       vars:
         ubuntu_installer_interface_name: enp1s0
         ubuntu_installer_target_dir: "{{ cache_dir }}"
-        ubuntu_installer_image_url: "{{ guest.installer_image_url }}"
+        ubuntu_installer_image_url: "{{ iso_installer.dest }}"
         ubuntu_installer_hostname: "{{ guest.installer_hostname }}"
         ubuntu_installer_username: molecule
         ubuntu_installer_password: "{{ 'molecule' | password_hash('sha512') }}"

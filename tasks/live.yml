@@ -67,49 +67,28 @@
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
 
     - name: Create isolinux autoinstall iso
-      ansible.builtin.command: "mkisofs {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
+      ansible.builtin.command: |
+        xorriso -as mkisofs {{ mkisofs_options }}
+          -V 'ubuntu'
+          -b isolinux/isolinux.bin
+          -c isolinux/boot.cat
+          -o {{ target_filename }} .
       args:
         chdir: "{{ tmpdir_dest.path }}"
       vars:
         mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
         target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
       changed_when: false
-      tags:
-        - skip_ansible_lint
+      tags: skip_ansible_lint
 
-- name: Build grup autoinstall iso
+    - name: Make iso bootable
+      ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
+      changed_when: false
+
+- name: Build grub autoinstall iso
   when: not (isolinux.stat.exists | bool)
   block:
 
     - name: Fail on unsupported iso
       ansible.builtin.fail:
         msg: "unsupported grub bootloader iso"
-
-    - name: Gather iso partition info
-      community.general.system.parted:
-        device: "{{ ubuntu_installer_iso_path }}"
-        unit: B
-      register: iso_parted
-
-    - name: Get select efi partition
-      ansible.builtin.set_fact:
-        iso_efi_partition: "{{ iso_partition }}"
-      loop_control:
-        loop_var: iso_partition
-        label: "{{ efi_partition.name }}"
-      when: iso_partition.flags | intersection(['esp'])
-
-    - name: Create grub autoinstall iso
-      ansible.builtin.command: " {{ mkisofs_options }} -V 'ubuntu' -b isolinux/isolinux.bin -c isolinux/boot.cat -o {{ target_filename }} ."
-      args:
-        chdir: "{{ tmpdir_dest.path }}"
-      vars:
-        mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
-        target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
-      changed_when: false
-      tags:
-        - skip_ansible_lint
-
-- name: Make iso bootable
-  ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
-  changed_when: false

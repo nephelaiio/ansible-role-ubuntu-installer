@@ -43,7 +43,6 @@ provisioner:
           guests:
 
             - installer_hostname: "{{ molecule_distro }}-lvm-10g"
-              installer_image_url: "{{ iso_installer.url }}"
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
@@ -57,7 +56,6 @@ provisioner:
               installer_partitioning_method: lvm
 
             - installer_hostname: "{{ molecule_distro }}-static-10g"
-              installer_image_url: "{{ iso_installer.url }}"
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
@@ -71,7 +69,6 @@ provisioner:
               installer_partitioning_method: regular
 
             - installer_hostname: "{{ molecule_distro }}-lvm-50g"
-              installer_image_url: "{{ iso_installer.url }}"
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
@@ -85,7 +82,6 @@ provisioner:
               installer_partitioning_method: lvm
 
             - installer_hostname: "{{ molecule_distro }}-static-50g"
-              installer_image_url: "{{ iso_installer.url }}"
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
@@ -104,7 +100,6 @@ scenario:
   test_sequence:
     - dependency
     - prepare
-    - create
     - converge
     - verify
     - cleanup

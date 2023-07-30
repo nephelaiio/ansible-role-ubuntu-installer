@@ -24,8 +24,8 @@ provisioner:
     hosts:
       all:
         vars:
-          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='focal') }}"
-          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso') }}"
+          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
+          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso') }}"
           cache_dir: "/tmp/{{ molecule_distro }}"
 
           bridge_net: "{{ '192.168.255.0/24' | ansible.utils.ipv4('network/prefix') }}"

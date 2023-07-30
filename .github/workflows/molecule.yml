@@ -22,6 +22,8 @@ jobs:
         include:
           - distro: focal
             url: https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso
+          - distro: jammy
+            url: https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso
 
     steps:
       - name: Check out the codebase.

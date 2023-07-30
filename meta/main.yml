@@ -9,10 +9,7 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - focal
-        - bionic
-    - name: Debian
-      versions:
-        - buster
+        - jammy
   galaxy_tags:
     - ubuntu
     - installer

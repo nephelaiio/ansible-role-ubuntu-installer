@@ -78,8 +78,7 @@
     mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
     target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
   changed_when: false
-  tags:
-    - skip_ansible_lint
+  tags: skip_ansible_lint
 
 - name: Make iso bootable
   ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"

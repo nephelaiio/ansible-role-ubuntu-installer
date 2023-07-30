@@ -8,3 +8,5 @@ fileignoreconfig:
   ignore_detectors: [filecontent]
 - filename: molecule/default/verify.yml
   ignore_detectors: [filecontent]
+- filename: tasks/main.yml
+  ignore_detectors: [filecontent]

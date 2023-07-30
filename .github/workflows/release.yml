@@ -27,10 +27,13 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: install poetry
-        run: pip3 install poetry
+      - name: Install libvirt libraries
+        run: sudo apt-get install -y libvirt-dev
 
-      - name: install pips
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Install test dependencies.
         run: poetry install
 
       - name: trigger a new import on galaxy

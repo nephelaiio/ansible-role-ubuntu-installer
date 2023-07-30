@@ -1,15 +1,7 @@
 ---
-- import_playbook: inventory.yml
-
-
 - name: Verify ISO creation
 
-  hosts: molecule
-
-  gather_facts: false
-
-  vars_files:
-    - ./vars.yml
+  hosts: localhost
 
   tasks:
 
@@ -34,20 +26,11 @@
 
 - name: Add guests to inventory
 
-  hosts: molecule
+  hosts: localhost
 
   become: true
 
-  vars_files:
-    - ./vars.yml
-
   tasks:
-
-    - name: Add debug ssh key
-      ansible.posix.authorized_key:
-        user: "{{ ansible_user }}"
-        state: present
-        key: "{{ debug_pubkey }}"
 
     - name: Add guest to inventory
       ansible.builtin.add_host:
@@ -57,17 +40,14 @@
         ansible_user: molecule
         ansible_host: "{{ guest_address }}"
         ansible_port: "{{ guest_port }}"
-        ansible_ssh_private_key_file: "{{ kvm_key_pair_path }}"
+        ansible_ssh_private_key_file: "{{ kvm_keypair }}"
         partitioning_method: "{{ guest.installer_partitioning_method }}"
         disk_size: "{{ guest.installer_disk_size }}"
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
         bridge_address: "{{ guest.installer_interface.ipaddress }}"
-        snat_address: "{{ ansible_host }}"
-        guest_address: "{{ (aws_provision | default('no') | bool) | ternary(snat_address, bridge_address) }}"
-        bridge_port: 22
-        snat_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
-        guest_port: "{{ (aws_provision | default('no') | bool) | ternary(snat_port, bridge_port) }}"
+        guest_address: "{{ bridge_address }}"
+        guest_port: 22
       loop_control:
         loop_var: guest
         index_var: port_offset
@@ -81,9 +61,6 @@
 
   gather_facts: false
 
-  vars_files:
-    - ./vars.yml
-
   tasks:
 
     - name: Debug connection parameters
@@ -91,9 +68,34 @@
         msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
 
     - name: Wait for connection
-      ansible.builtin.wait_for_connection:
-        sleep: 10
-        timeout: 1800
+      block:
+
+        - name: Wait for guest
+          ansible.builtin.wait_for_connection:
+            sleep: 10
+            timeout: 1200
+
+      rescue:
+
+        - name: Ping hosts
+          ansible.builtin.command: "ping {{ ansible_host }}"
+          register: guest_ping
+          ignore_errors: true
+
+        - name: Debug ping result
+          ansible.builtin.debug:
+            var: guest_ping
+
+        - name: Query host interfaces
+          ansible.builtin.command: "/usr/sbin/ip address show"
+          register: host_addresses
+          delegate_to: localhost
+          run_once: true
+
+        - name: Debug host interfaces
+          ansible.builtin.debug:
+            var: host_addresses
+          run_once: true
 
     - name: Gather facts
       ansible.builtin.setup:

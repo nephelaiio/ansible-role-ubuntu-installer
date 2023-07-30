@@ -1,50 +1,40 @@
 ---
-- import_playbook: cache.yml
-
-
-- import_playbook: inventory.yml
-
-
-- name: Wait for provisioning to complete
-
-  hosts: molecule
-
-  gather_facts: false
-
-  tasks:
-
-    - name: Wait for connection
-      ansible.builtin.wait_for_connection:
-        sleep: 10
-        timeout: 600
-
-
 - name: Prepare host networking
 
-  hosts: molecule
+  hosts: localhost
 
   become: true
 
-  vars_files:
-    - vars.yml
-
   tasks:
 
-    - name: Install python3
+    - name: Update apt package cache
       ansible.builtin.apt:
-        name: python3
         update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Create molecule cache dir
+      ansible.builtin.file:
+        path: "{{ cache_dir }}"
+        state: directory
+        mode: 0777
+      become: false
+
+    - name: Create KVM keypair
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t rsa -f {{ kvm_keypair }} -q -P '' -C ''"
+        creates: "{{ kvm_keypair }}"
+      become: false
 
     - name: Create dummy bridge
       ansible.builtin.command: "ip link add {{ bridge_name }} type bridge"
       failed_when: false
 
     - name: Create dummy interface
-      ansible.builtin.command: "ip link add {{ iface_name }} type dummy"
+      ansible.builtin.command: "ip link add {{ bridge_iface }} type dummy"
       failed_when: false
 
     - name: Create dummy bridge slave
-      ansible.builtin.command: "ip link set {{ iface_name }} master {{ bridge_name }}"
+      ansible.builtin.command: "ip link set {{ bridge_iface }} master {{ bridge_name }}"
       failed_when: false
 
     - name: Set bridge interface ip address
@@ -54,34 +44,6 @@
     - name: Start bridge interface
       ansible.builtin.command: "ip link set dev {{ bridge_name }} up"
       failed_when: false
-
-    - name: DNAT ssh preroute
-      ansible.builtin.iptables:
-        table: nat
-        chain: PREROUTING
-        destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
-        to_destination: "{{ item.installer_interface.ipaddress }}:22"
-        jump: DNAT
-        protocol: tcp
-        state: present
-      loop_control:
-        index_var: port_offset
-        label: "{{ item.installer_hostname }}"
-      loop: "{{ guests }}"
-
-    - name: DNAT ssh output
-      ansible.builtin.iptables:
-        table: nat
-        chain: OUTPUT
-        destination_port: "{{ (ssh_port_base | int) + (port_offset | int) }}"
-        to_destination: "{{ item.installer_interface.ipaddress }}:22"
-        jump: DNAT
-        protocol: tcp
-        state: present
-      loop_control:
-        index_var: port_offset
-        label: "{{ item.installer_hostname }}"
-      loop: "{{ guests }}"
 
     - name: Masquerade bridge
       ansible.builtin.iptables:
@@ -111,3 +73,4 @@
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
           - python3-libvirt
+      when: ansible_os_family == 'Debian'

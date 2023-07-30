@@ -1,0 +1,44 @@
+---
+name: Molecule
+
+on:
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: "0 3 * * 0"
+
+defaults:
+  run:
+    working-directory: 'nephelaiio.ubuntu_installer'
+
+jobs:
+
+  molecule:
+    name: molecule
+    runs-on: libvirt
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+        with:
+          path: 'nephelaiio.ubuntu_installer'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install libvirt libraries
+        run: sudo apt-get install -y libvirt-dev
+
+      - name: Install poetry
+        run: pip install poetry
+
+      - name: Install test dependencies.
+        run: poetry install
+
+      - name: Run Molecule tests.
+        run: poetry run molecule test
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'

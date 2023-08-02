@@ -28,7 +28,8 @@ provisioner:
           molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso') }}"
           cache_dir: "/tmp/{{ molecule_distro }}"
 
-          bridge_net: "{{ '192.168.255.0/24' | ansible.utils.ipv4('network/prefix') }}"
+          molecule_net: "{{ lookup('env', 'MOLECULE_NET', default='192.168.255.0/24') }}"
+          bridge_net: "{{ molecule_net | ansible.utils.ipv4('network/prefix') }}"
           bridge_host: "{{ bridge_net | ansible.utils.nthhost(1) }}"
           bridge_prefix: "{{ bridge_net | ansible.utils.ipaddr('prefix') }}"
           bridge_name: "{{ molecule_distro }}br0"

@@ -103,6 +103,8 @@
         src: isolinux.live.j2
         dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
       vars:
+        kernel_file: /casper/vmlinuz
+        initrd_file: /casper/initrd
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
       when: isolinux.stat.exists
 

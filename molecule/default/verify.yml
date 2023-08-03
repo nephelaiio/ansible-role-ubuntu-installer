@@ -42,7 +42,9 @@
         ansible_port: "{{ guest_port }}"
         ansible_ssh_private_key_file: "{{ kvm_keypair }}"
         partitioning_method: "{{ guest.installer_partitioning_method }}"
+        disk_location: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
         disk_size: "{{ guest.installer_disk_size }}"
+        disk_index: "{{ disk_index }}"
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
         bridge_address: "{{ guest.installer_interface.ipaddress }}"
@@ -50,7 +52,7 @@
         guest_port: 22
       loop_control:
         loop_var: guest
-        index_var: port_offset
+        index_var: disk_index
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
@@ -75,68 +77,62 @@
             sleep: 10
             timeout: 1200
 
-      rescue:
+        - name: Gather facts
+          ansible.builtin.setup:
 
-        - name: Ping hosts
-          ansible.builtin.command: "ping {{ ansible_host }}"
-          register: guest_ping
-          ignore_errors: true
+        - name: Check passwordless sudo
+          ansible.builtin.command: ls /
+          become: true
 
-        - name: Debug ping result
-          ansible.builtin.debug:
-            var: guest_ping
+        - name: Gather partition info
+          ansible.builtin.shell: "lsblk -l | grep /$"
+          register: lsblk_output
 
-        - name: Query host interfaces
-          ansible.builtin.command: "/usr/sbin/ip address show"
-          register: host_addresses
-          delegate_to: localhost
-          run_once: true
-
-        - name: Debug host interfaces
-          ansible.builtin.debug:
-            var: host_addresses
-          run_once: true
-
-    - name: Gather facts
-      ansible.builtin.setup:
-
-    - name: Check passwordless sudo
-      ansible.builtin.command: ls /
-      become: true
-
-    - name: Gather partition info
-      ansible.builtin.shell: "lsblk -l | grep /$"
-      register: lsblk_output
-
-    - name: Check static partitioning
-      ansible.builtin.fail:
-        msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
-      when:
-        - partitioning_method == 'regular'
-        - lsblk_output.stdout is not search("part") or
-          lsblk_output.stdout is search("lvm")
-
-    - name: Check lvm partitioning
-      when: partitioning_method == 'lvm'
-      block:
+        - name: Check static partitioning
+          ansible.builtin.fail:
+            msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
+          when:
+            - partitioning_method == 'regular'
+            - lsblk_output.stdout is not search("part") or
+              lsblk_output.stdout is search("lvm")
 
         - name: Check lvm partitioning
+          when: partitioning_method == 'lvm'
+          block:
+
+            - name: Check lvm partitioning
+              ansible.builtin.fail:
+                msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
+              when:
+                - lsblk_output.stdout is not search('lvm')
+
+        - name: Debug disk size
+          ansible.builtin.debug:
+            msg: "{{ installer_root_device }}"
+          vars:
+            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+
+        - name: Check root device size
           ansible.builtin.fail:
-            msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
-          when:
-            - lsblk_output.stdout is not search('lvm')
+            msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
+          vars:
+            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+            installer_root_size: "{{ installer_root_device.size_total }}"
+            installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
+          when: (installer_root_size | int) < (installer_root_threshold | int)
 
-    - name: Debug disk size
-      ansible.builtin.debug:
-        msg: "{{ installer_root_device }}"
-      vars:
-        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+      always:
 
-    - name: Check root device size
-      ansible.builtin.fail:
-        msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
-      vars:
-        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
-        installer_root_size: "{{ installer_root_device.size_total }}"
-        installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
-      when: (installer_root_size | int) < (installer_root_threshold | int)
+        - name: Gather install logs
+          delegate_to: localhost
+          block:
+
+            - name: Stop KVM guest
+              community.libvirt.virt:
+                command: stop
+                name: "{{ inventory_hostname }}"
+
+            - name: Start KVM guest
+              community.libvirt.virt:
+                command: start
+                name: "{{ inventory_hostname }}"

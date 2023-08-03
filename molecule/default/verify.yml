@@ -129,7 +129,7 @@
 
             - name: Stop KVM guest
               community.libvirt.virt:
-                command: stop
+                command: destroy
                 name: "{{ inventory_hostname }}"
 
             - name: Start KVM guest

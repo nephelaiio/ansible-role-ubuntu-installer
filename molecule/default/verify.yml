@@ -165,6 +165,11 @@
                 state: directory
                 path: "{{ debug_hostdir }}"
 
+            - name: Load NBD module
+              community.general.modprobe:
+                name: nbd
+                state: present
+
             - name: Disconnect disk image from NBD device
               ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
 
@@ -173,11 +178,6 @@
                 src: "{{ disk_location }}"
                 dest: "{{ debug_disk }}"
                 remote_src: true
-
-            - name: Load NBD module
-              community.general.modprobe:
-                name: nbd
-                state: present
 
             - name: Connect disk image to NBD device
               ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"

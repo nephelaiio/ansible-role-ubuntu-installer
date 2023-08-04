@@ -199,6 +199,10 @@
                 dest: "{{ debug_output_file }}"
                 remote_src: true
 
+            - name: Debug installation log location
+              ansible.builtin.debug:
+                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_file }}"
+
             - name: Unmount guest
               ansible.posix.mount:
                 path: "{{ debug_hostdir }}"

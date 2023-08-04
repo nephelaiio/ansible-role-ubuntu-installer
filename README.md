@@ -27,7 +27,7 @@ The following example will create an unattended iso for deploying vm.nephelai.io
       nameservers: 8.8.8.8 8.8.4.8.8.8.8 8.8.4.4
 ```
 
-Images are tested by provisioning kvm guests on ec2 bare metal instances
+Images are tested by provisioning kvm guests on github actions large runners
 
 ## Testing
 

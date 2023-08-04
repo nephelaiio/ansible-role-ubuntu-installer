@@ -9,3 +9,4 @@ playbook.retry
 **/*.img
 **/id_rsa*
 .venv/
+logs/

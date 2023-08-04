@@ -67,7 +67,11 @@
 
     - name: Debug connection parameters
       ansible.builtin.debug:
-        msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
+        msg: >
+          ssh {{ ansible_user }}@{{ ansible_host }}
+          {{ ansible_ssh_common_args | default('') }}
+          -i {{ ansible_ssh_private_key_file }}
+          -p {{ ansible_port }}
 
     - name: Wait for connection
       block:
@@ -123,16 +127,82 @@
 
       always:
 
+        - name: End play for lvm guests
+          ansible.builtin.meta: end_host
+          when: partitioning_method != 'regular'
+
+        - name: End play guests with disks over 11GB
+          ansible.builtin.meta: end_host
+          when: disk_size > 11 * gb
+          vars:
+            gb: "{{ 1024**3 }}"
+
+        - name: Set debug facts
+          ansible.builtin.set_fact:
+            debug_disk: "{{ disk_location }}.debug"
+            debug_hostdir: "{{ _hostdir }}"
+            debug_logfile: "{{ _logfile }}"
+            debug_output_dir: "{{ output_dir }}"
+            debug_output_file: "{{ output_dir }}/{{ inventory_hostname }}.log"
+          vars:
+            _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
+            _logfile: "{{ _hostdir }}/var/log/installer/subiquity-server-debug.log"
+
+        - name: Create output directory
+          ansible.builtin.file:
+            state: directory
+            path: "{{ debug_output_dir }}"
+          delegate_to: localhost
+          run_once: true
+
         - name: Gather install logs
           delegate_to: localhost
+          become: true
           block:
 
-            - name: Stop KVM guest
-              community.libvirt.virt:
-                command: destroy
-                name: "{{ inventory_hostname }}"
+            - name: Create hostname directory
+              ansible.builtin.file:
+                state: directory
+                path: "{{ debug_hostdir }}"
 
-            - name: Start KVM guest
-              community.libvirt.virt:
-                command: start
-                name: "{{ inventory_hostname }}"
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
+
+            - name: Copy guest disk
+              ansible.builtin.copy:
+                src: "{{ disk_location }}"
+                dest: "{{ debug_disk }}"
+                remote_src: true
+
+            - name: Load NBD module
+              community.general.modprobe:
+                name: nbd
+                state: present
+
+            - name: Connect disk image to NBD device
+              ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
+
+            - name: Query NBD mount target
+              ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
+              register: fdisk_nbd
+
+            - name: Mount guest image file
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                fstype: ext4
+                state: ephemeral
+
+            - name: Copy guest installation logs
+              ansible.builtin.copy:
+                src: "{{ debug_logfile }}"
+                dest: "{{ debug_output_file }}"
+                remote_src: true
+
+            - name: Unmount guest
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                state: unmounted
+
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"

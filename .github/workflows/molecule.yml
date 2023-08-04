@@ -60,5 +60,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: install-logs
-          path: |
-            logs/*.log
+          path: logs/*.log
+          if-no-files-found: error

@@ -112,9 +112,10 @@
 
         - name: Debug disk size
           ansible.builtin.debug:
-            msg: "{{ installer_root_device }}"
+            msg: "{{ (installer_root_device.size_total / gb) | round(2) }} GB"
           vars:
             installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+            gb: "{{ 1024**3 }}"
 
         - name: Check root device size
           ansible.builtin.fail:

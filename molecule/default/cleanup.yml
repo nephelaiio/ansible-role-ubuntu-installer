@@ -3,7 +3,7 @@
 
   hosts: localhost
 
-  become: yes
+  become: true
 
   tasks:
 

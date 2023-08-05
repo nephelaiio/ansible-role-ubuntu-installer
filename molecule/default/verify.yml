@@ -138,3 +138,4 @@
         - name: Take guest screenshot
           ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ output_dir }}/{{ inventory_hostname }}.png"
           delegate_to: localhost
+          become: true

@@ -61,5 +61,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: install-logs
-          path: /tmp/logs/*.log
+          path: /tmp/logs/*.png
           if-no-files-found: ignore

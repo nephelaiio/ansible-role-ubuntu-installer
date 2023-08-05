@@ -131,7 +131,7 @@
         - name: Create output directory
           ansible.builtin.file:
             state: directory
-            path: "{{ debug_output_dir }}"
+            path: "{{ output_dir }}"
           delegate_to: localhost
           run_once: true
 

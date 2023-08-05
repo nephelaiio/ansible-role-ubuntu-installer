@@ -55,10 +55,11 @@ jobs:
           MOLECULE_DISTRO: ${{ matrix.distro }}
           MOLECULE_ISO: ${{ matrix.url }}
           MOLECULE_NET: ${{ matrix.net }}
+          MOLECULE_OUTPUT_DIR: "/tmp/logs"
 
       - name: Upload install logs
         uses: actions/upload-artifact@v3
         with:
           name: install-logs
-          path: logs/*.log
-          if-no-files-found: error
+          path: /tmp/logs/*.log
+          if-no-files-found: ignore

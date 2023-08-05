@@ -143,11 +143,13 @@
             debug_disk: "{{ disk_location }}.debug"
             debug_hostdir: "{{ _hostdir }}"
             debug_logfile: "{{ _logfile }}"
+            debug_crashdir: "{{ _crashdir }}"
             debug_output_dir: "{{ output_dir }}"
             debug_output_file: "{{ output_dir }}/{{ inventory_hostname }}.log"
           vars:
             _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
             _logfile: "{{ _hostdir }}/var/log/installer/subiquity-server-debug.log"
+            _crashdir: "{{ _hostdir }}/var/crash/"
 
         - name: Create output directory
           ansible.builtin.file:
@@ -204,6 +206,17 @@
             - name: Debug guest installation files
               ansible.builtin.debug:
                 msg: "{{ debug_files.files | map(attribute='path') }}"
+
+            - name: Query guest crash files
+              ansible.builtin.find:
+                paths: "{{ debug_crashdir }}"
+                recurse: no
+                file_type: file
+              register: crash_files
+
+            - name: Debug guest crash files
+              ansible.builtin.debug:
+                msg: "{{ crash_files.files | map(attribute='path') }}"
 
             - name: Copy guest installation log
               ansible.builtin.copy:

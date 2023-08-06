@@ -135,11 +135,11 @@
             debug_logfile: "{{ _logfile }}"
             debug_crashdir: "{{ _crashdir }}"
             debug_output_dir: "{{ output_dir }}"
-            debug_output_file: "{{ output_dir }}/{{ inventory_hostname }}.log"
+            debug_output_curtin: "{{ output_dir }}/{{ inventory_hostname }}.curtin.log"
             debug_output_screenshot: "{{ output_dir }}/{{ inventory_hostname }}.png"
           vars:
             _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
-            _logfile: "{{ _hostdir }}/var/log/installer/subiquity-server-debug.log"
+            _logfile: "{{ _hostdir }}/var/log/installer/curtin-install.log"
             _crashdir: "{{ _hostdir }}/var/crash/"
 
         - name: Create output directory
@@ -224,16 +224,16 @@
               ansible.builtin.debug:
                 msg: "{{ crash_files.files | map(attribute='path') }}"
 
-            - name: Copy guest installation log
+            - name: Copy guest curtin installation log
               ansible.builtin.copy:
                 src: "{{ debug_logfile }}"
-                dest: "{{ debug_output_file }}"
+                dest: "{{ debug_output_curtin }}"
                 remote_src: true
               when: debug_logfile in (debug_files.files | map(attribute='path'))
 
-            - name: Debug installation log location
+            - name: Debug curtin installation log location
               ansible.builtin.debug:
-                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_file }}"
+                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_curtin }}"
 
             - name: Unmount guest
               ansible.posix.mount:

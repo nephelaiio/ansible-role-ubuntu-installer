@@ -63,3 +63,4 @@ jobs:
           name: install-logs
           path: /tmp/logs/*.png
           if-no-files-found: ignore
+        if: always()

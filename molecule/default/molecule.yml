@@ -2,8 +2,8 @@
 dependency:
   name: galaxy
   options:
-    role-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
-    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
+    role-file: ${MOLECULE_PROJECT_DIRECTORY}//requirements.yml
+    requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
 driver:
   name: delegated
   options:
@@ -18,17 +18,20 @@ provisioner:
   config_options:
     defaults:
       interpreter_python: auto_silent
+      callbacks_enabled: ansible.posix.profile_tasks
       callback_whitelist: profile_tasks, timer, yaml
       host_key_checking: false
   inventory:
     hosts:
       all:
         vars:
-          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='focal') }}"
-          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso') }}"
+          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
+          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso') }}"
           cache_dir: "/tmp/{{ molecule_distro }}"
+          output_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"
 
-          bridge_net: "{{ '192.168.255.0/24' | ansible.utils.ipv4('network/prefix') }}"
+          molecule_net: "{{ lookup('env', 'MOLECULE_NET', default='192.168.255.0/24') }}"
+          bridge_net: "{{ molecule_net | ansible.utils.ipv4('network/prefix') }}"
           bridge_host: "{{ bridge_net | ansible.utils.nthhost(1) }}"
           bridge_prefix: "{{ bridge_net | ansible.utils.ipaddr('prefix') }}"
           bridge_name: "{{ molecule_distro }}br0"

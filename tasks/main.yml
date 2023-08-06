@@ -70,6 +70,25 @@
     path: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
   register: isolinux
 
+- name: Configure grub bootloader
+  ansible.builtin.copy:
+    dest: "{{ tmpdir_dest.path }}/boot/grub/grub.cfg"
+    content: |
+      set timeout=1
+      loadfont unicode
+      set menu_color_normal=white/black
+      set menu_color_highlight=black/light-gray
+
+      menuentry "Autoinstall Ubuntu Server" {
+        set gfxpayload=keep
+        linux   /casper/vmlinuz quiet autoinstall ds=nocloud\;s=/cdrom{{ nocloud_dir }}/  ---
+        initrd  /casper/initrd
+      }
+
+      grub_platform
+  vars:
+    nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
+
 - name: Build isolinux autoinstall iso
   when: isolinux.stat.exists | bool
   block:
@@ -89,21 +108,10 @@
         nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
       when: isolinux.stat.exists
 
-    - name: Configure grub bootloader
-      ansible.builtin.lineinfile:
-        backrefs: true
-        regexp: '^(\s*linux\s+/casper/vmlinuz\s+quiet)'
-        line: '\1 autoinstall ds=noucloud\\;s=/cdrom{{ nocloud_dir }}/'
-        validate: "grub-script-check %s"
-        path: "{{ tmpdir_dest.path }}/boot/grub/grub.cfg"
-      vars:
-        kernel_file: /casper/vmlinuz
-        initrd_file: /casper/initrd
-        nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
-
     - name: Create isolinux autoinstall iso
       ansible.builtin.command: |
-        xorriso -as mkisofs {{ mkisofs_options }}
+        xorriso -as mkisofs
+          -ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table
           -V 'ubuntu'
           -b isolinux/isolinux.bin
           -c isolinux/boot.cat
@@ -111,7 +119,6 @@
       args:
         chdir: "{{ tmpdir_dest.path }}"
       vars:
-        mkisofs_options: "-ldots -allow-multidot -d -r -l -J -no-emul-boot -boot-load-size 4 -boot-info-table"
         target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
       changed_when: false
       tags: skip_ansible_lint
@@ -120,13 +127,57 @@
       ansible.builtin.command: "isohybrid {{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.iso"
       changed_when: false
 
-- name: Build grub autoinstall iso
+- name: Build grub autoinstall iso (see https://www.pugetsystems.com/labs/hpc/ubuntu-22-04-server-autoinstall-iso)
   when: not (isolinux.stat.exists | bool)
   block:
 
-    - name: Fail on unsupported iso
-      ansible.builtin.fail:
-        msg: "unsupported grub bootloader iso"
+    - name: Create temporary boot directory
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: boot
+      register: tmpdir_boot
+
+    - name: Move BOOT folder files to iso root
+      ansible.builtin.shell: "mv {{ tmpdir_dest.path }}/'[BOOT]'/* {{ tmpdir_boot.path }}"
+      tags: skip_ansible_lint
+
+    - name: Delete BOOT folder
+      ansible.builtin.shell: "rmdir {{ tmpdir_dest.path }}/'[BOOT]'"
+      tags: skip_ansible_lint
+
+    - name: Extract Package indexes
+      ansible.builtin.shell: >
+        find {{ tmpdir_dest.path }} -name Packages.gz | xargs -I{} sudo bash -c "gunzip -c {} > \$(dirname {})/\$(basename {} .gz)"
+      tags: skip_ansible_lint
+
+    - name: Create grub autoinstall iso (see https://unix.stackexchange.com/a/726491)
+      ansible.builtin.command: |
+        xorriso -as mkisofs
+          -V 'ubuntu'
+          --grub2-mbr {{ tmpdir_boot.path }}/1-Boot-NoEmul.img
+          -partition_offset 16
+          --mbr-force-bootable
+          -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b {{ tmpdir_boot.path }}/2-Boot-NoEmul.img
+          -appended_part_as_gpt
+          -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7
+          -c '/boot.catalog'
+          -b '/boot/grub/i386-pc/eltorito.img'
+          -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info
+          -eltorito-alt-boot
+          -e '--interval:appended_partition_2:::'
+          -no-emul-boot
+          -o {{ target_filename }} .
+      args:
+        chdir: "{{ tmpdir_dest.path }}"
+      vars:
+        target_filename: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_target_filename }}"
+      changed_when: false
+      tags: skip_ansible_lint
+
+    - name: Remove temporary boot directory
+      ansible.builtin.file:
+        path: "{{ tmpdir_boot.path }}"
+        state: absent
 
 - name: Remove temporary directories
   ansible.builtin.file:

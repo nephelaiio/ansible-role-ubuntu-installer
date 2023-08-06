@@ -11,7 +11,7 @@ Please refer to the [defaults file](/defaults/main.yml) for a full list of input
 
 ## Example Playbook
 
-The following example will create an unattended iso for deploying vm.nephelai.io with Ubuntu Focal (20.04.6) pulled from releases.ubuntu.com (default)
+The following example will create an unattended iso for deploying vm.nephelai.io with Ubuntu Focal (22.04.2) pulled from releases.ubuntu.com (default)
 
 ```
 - hosts: localhost
@@ -19,7 +19,6 @@ The following example will create an unattended iso for deploying vm.nephelai.io
      - role: nephelaiio.ubuntu_installer
   vars:
     ubuntu_installer_hostname: vm.nephelai.io
-    ubuntu_installer_image_url: https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso
     ubuntu_installer_interface:
       static: true
       ipaddress: 10.40.0.22
@@ -28,7 +27,7 @@ The following example will create an unattended iso for deploying vm.nephelai.io
       nameservers: 8.8.8.8 8.8.4.8.8.8.8 8.8.4.4
 ```
 
-Images are tested by provisioning kvm guests on ec2 bare metal instances
+Images are tested by provisioning kvm guests on github actions large runners
 
 ## Testing
 

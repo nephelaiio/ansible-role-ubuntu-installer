@@ -42,7 +42,9 @@
         ansible_port: "{{ guest_port }}"
         ansible_ssh_private_key_file: "{{ kvm_keypair }}"
         partitioning_method: "{{ guest.installer_partitioning_method }}"
+        disk_location: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
         disk_size: "{{ guest.installer_disk_size }}"
+        disk_index: "{{ disk_index }}"
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
         bridge_address: "{{ guest.installer_interface.ipaddress }}"
@@ -50,7 +52,7 @@
         guest_port: 22
       loop_control:
         loop_var: guest
-        index_var: port_offset
+        index_var: disk_index
         label: "{{ guest.installer_hostname }}"
       loop: "{{ guests }}"
 
@@ -65,7 +67,11 @@
 
     - name: Debug connection parameters
       ansible.builtin.debug:
-        msg: "ssh {{ ansible_user }}@{{ ansible_host }} {{ ansible_ssh_common_args | default('') }} -i {{ ansible_ssh_private_key_file }} -p {{ ansible_port }}"
+        msg: >
+          ssh {{ ansible_user }}@{{ ansible_host }}
+          {{ ansible_ssh_common_args | default('') }}
+          -i {{ ansible_ssh_private_key_file }}
+          -p {{ ansible_port }}
 
     - name: Wait for connection
       block:
@@ -73,70 +79,166 @@
         - name: Wait for guest
           ansible.builtin.wait_for_connection:
             sleep: 10
-            timeout: 1200
+            timeout: 1800
 
-      rescue:
+        - name: Gather facts
+          ansible.builtin.setup:
 
-        - name: Ping hosts
-          ansible.builtin.command: "ping {{ ansible_host }}"
-          register: guest_ping
-          ignore_errors: true
+        - name: Check passwordless sudo
+          ansible.builtin.command: ls /
+          become: true
 
-        - name: Debug ping result
+        - name: Gather partition info
+          ansible.builtin.shell: "lsblk -l | grep /$"
+          register: lsblk_output
+
+        - name: Check static partitioning
+          ansible.builtin.fail:
+            msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
+          when:
+            - partitioning_method == 'regular'
+            - lsblk_output.stdout is not search("part") or
+              lsblk_output.stdout is search("lvm")
+
+        - name: Check lvm partitioning
+          when: partitioning_method == 'lvm'
+          block:
+
+            - name: Check lvm partitioning
+              ansible.builtin.fail:
+                msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
+              when:
+                - lsblk_output.stdout is not search('lvm')
+
+        - name: Debug disk size
           ansible.builtin.debug:
-            var: guest_ping
+            msg: "{{ ((installer_root_device.size_total | int) / (gb | int)) | round(2) }} GB"
+          vars:
+            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+            gb: "{{ 1024**3 }}"
 
-        - name: Query host interfaces
-          ansible.builtin.command: "/usr/sbin/ip address show"
-          register: host_addresses
+        - name: Check root device size
+          ansible.builtin.fail:
+            msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
+          vars:
+            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+            installer_root_size: "{{ installer_root_device.size_total }}"
+            installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
+          when: (installer_root_size | int) < (installer_root_threshold | int)
+
+      always:
+
+        - name: Set debug facts
+          ansible.builtin.set_fact:
+            debug_disk: "{{ disk_location }}.debug"
+            debug_hostdir: "{{ _hostdir }}"
+            debug_logfile: "{{ _logfile }}"
+            debug_crashdir: "{{ _crashdir }}"
+            debug_output_dir: "{{ output_dir }}"
+            debug_output_curtin: "{{ output_dir }}/{{ inventory_hostname }}.curtin.log"
+            debug_output_screenshot: "{{ output_dir }}/{{ inventory_hostname }}.png"
+          vars:
+            _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
+            _logfile: "{{ _hostdir }}/var/log/installer/curtin-install.log"
+            _crashdir: "{{ _hostdir }}/var/crash/"
+
+        - name: Create output directory
+          ansible.builtin.file:
+            state: directory
+            path: "{{ debug_output_dir }}"
           delegate_to: localhost
           run_once: true
 
-        - name: Debug host interfaces
-          ansible.builtin.debug:
-            var: host_addresses
-          run_once: true
+        - name: Take guest screenshot
+          ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
+          delegate_to: localhost
+          become: true
 
-    - name: Gather facts
-      ansible.builtin.setup:
+        - name: End play for lvm guests
+          ansible.builtin.meta: end_host
+          when: partitioning_method != 'regular'
 
-    - name: Check passwordless sudo
-      ansible.builtin.command: ls /
-      become: true
+        - name: End play guests with disks over 11GB
+          ansible.builtin.meta: end_host
+          when: disk_size > 11 * gb
+          vars:
+            gb: "{{ 1024**3 }}"
 
-    - name: Gather partition info
-      ansible.builtin.shell: "lsblk -l | grep /$"
-      register: lsblk_output
+        - name: Gather install logs
+          delegate_to: localhost
+          become: true
+          block:
 
-    - name: Check static partitioning
-      ansible.builtin.fail:
-        msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
-      when:
-        - partitioning_method == 'regular'
-        - lsblk_output.stdout is not search("part") or
-          lsblk_output.stdout is search("lvm")
+            - name: Create output hostname directory
+              ansible.builtin.file:
+                state: directory
+                path: "{{ debug_hostdir }}"
 
-    - name: Check lvm partitioning
-      when: partitioning_method == 'lvm'
-      block:
+            - name: Load NBD module
+              community.general.modprobe:
+                name: nbd
+                state: present
 
-        - name: Check lvm partitioning
-          ansible.builtin.fail:
-            msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
-          when:
-            - lsblk_output.stdout is not search('lvm')
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
 
-    - name: Debug disk size
-      ansible.builtin.debug:
-        msg: "{{ installer_root_device }}"
-      vars:
-        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+            - name: Copy guest disk
+              ansible.builtin.copy:
+                src: "{{ disk_location }}"
+                dest: "{{ debug_disk }}"
+                remote_src: true
 
-    - name: Check root device size
-      ansible.builtin.fail:
-        msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
-      vars:
-        installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
-        installer_root_size: "{{ installer_root_device.size_total }}"
-        installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
-      when: (installer_root_size | int) < (installer_root_threshold | int)
+            - name: Connect disk image to NBD device
+              ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
+
+            - name: Query NBD mount target
+              ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
+              register: fdisk_nbd
+
+            - name: Mount guest image file
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                fstype: ext4
+                state: ephemeral
+
+            - name: Query guest installation files
+              ansible.builtin.find:
+                paths: "{{ debug_logfile | dirname }}"
+                recurse: no
+                file_type: file
+              register: debug_files
+
+            - name: Debug guest installation files
+              ansible.builtin.debug:
+                msg: "{{ debug_files.files | map(attribute='path') }}"
+
+            - name: Query guest crash files
+              ansible.builtin.find:
+                paths: "{{ debug_crashdir }}"
+                recurse: no
+                file_type: file
+              register: crash_files
+
+            - name: Debug guest crash files
+              ansible.builtin.debug:
+                msg: "{{ crash_files.files | map(attribute='path') }}"
+
+            - name: Copy guest curtin installation log
+              ansible.builtin.copy:
+                src: "{{ debug_logfile }}"
+                dest: "{{ debug_output_curtin }}"
+                remote_src: true
+              when: debug_logfile in (debug_files.files | map(attribute='path'))
+
+            - name: Debug curtin installation log location
+              ansible.builtin.debug:
+                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_curtin }}"
+
+            - name: Unmount guest
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                state: unmounted
+
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"

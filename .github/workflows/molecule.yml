@@ -20,12 +20,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - distro: focal
-            url: https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso
+          - distro: 'jammy'
+            url: 'https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso'
+            net: '192.168.255.0/24'
+          - distro: 'focal'
+            url: 'https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso'
+            net: '192.168.254.0/24'
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: 'nephelaiio.ubuntu_installer'
 
@@ -50,3 +54,15 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           MOLECULE_DISTRO: ${{ matrix.distro }}
           MOLECULE_ISO: ${{ matrix.url }}
+          MOLECULE_NET: ${{ matrix.net }}
+          MOLECULE_OUTPUT_DIR: "/tmp/logs"
+
+      - name: Upload install logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: install-logs
+          path: |
+            /tmp/logs/*.png
+            /tmp/logs/*.log
+          if-no-files-found: ignore
+        if: always()

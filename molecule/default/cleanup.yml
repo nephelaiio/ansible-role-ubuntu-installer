@@ -3,13 +3,13 @@
 
   hosts: localhost
 
-  become: yes
+  become: true
 
   tasks:
 
     - name: Destroy KVM guest
       community.libvirt.virt:
-        command: destroy
+        state: destroyed
         name: "{{ guest.installer_hostname }}"
       loop_control:
         loop_var: guest

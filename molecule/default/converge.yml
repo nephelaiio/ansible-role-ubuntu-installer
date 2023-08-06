@@ -13,34 +13,6 @@
           - parted
           - lvm2
 
-    - name: manage molecule lvm
-      when: (ec2_disks is defined) and (ec2_disks | length) > 0
-      block:
-
-        - name: Create molecule vg
-          community.general.lvg:
-            vg: molecule
-            pvs: "{{ ','.join(ec2_disks) }}"
-
-        - name: Create molecule lv
-          community.general.lvol:
-            vg: molecule
-            lv: molecule
-            size: "100%VG"
-
-        - name: Create molecule filesystem
-          community.general.filesystem:
-            fstype: ext4
-            dev: /dev/mapper/molecule-molecule
-
-        - name: Mount molecule filesystem
-          ansible.posix.mount:
-            path: "{{ cache_dir }}"
-            src: /dev/mapper/molecule-molecule
-            fstype: ext4
-            state: mounted
-            fstab: /dev/null
-
   tasks:
 
     - name: Cache installer iso
@@ -69,7 +41,7 @@
 
     - name: Destroy KVM guest
       community.libvirt.virt:
-        command: destroy
+        state: destroyed
         name: "{{ guest.installer_hostname }}"
       loop_control:
         loop_var: guest

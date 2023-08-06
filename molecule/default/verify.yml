@@ -128,14 +128,117 @@
 
       always:
 
+        - name: Set debug facts
+          ansible.builtin.set_fact:
+            debug_disk: "{{ disk_location }}.debug"
+            debug_hostdir: "{{ _hostdir }}"
+            debug_logfile: "{{ _logfile }}"
+            debug_crashdir: "{{ _crashdir }}"
+            debug_output_dir: "{{ output_dir }}"
+            debug_output_file: "{{ output_dir }}/{{ inventory_hostname }}.log"
+            debug_output_screenshot: "{{ output_dir }}/{{ inventory_hostname }}.png"
+          vars:
+            _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
+            _logfile: "{{ _hostdir }}/var/log/installer/subiquity-server-debug.log"
+            _crashdir: "{{ _hostdir }}/var/crash/"
+
         - name: Create output directory
           ansible.builtin.file:
             state: directory
-            path: "{{ output_dir }}"
+            path: "{{ debug_output_dir }}"
           delegate_to: localhost
           run_once: true
 
         - name: Take guest screenshot
-          ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ output_dir }}/{{ inventory_hostname }}.png"
+          ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
           delegate_to: localhost
           become: true
+
+        - name: End play for lvm guests
+          ansible.builtin.meta: end_host
+          when: partitioning_method != 'regular'
+
+        - name: End play guests with disks over 11GB
+          ansible.builtin.meta: end_host
+          when: disk_size > 11 * gb
+          vars:
+            gb: "{{ 1024**3 }}"
+
+        - name: Gather install logs
+          delegate_to: localhost
+          become: true
+          block:
+
+            - name: Create output hostname directory
+              ansible.builtin.file:
+                state: directory
+                path: "{{ debug_hostdir }}"
+
+            - name: Load NBD module
+              community.general.modprobe:
+                name: nbd
+                state: present
+
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
+
+            - name: Copy guest disk
+              ansible.builtin.copy:
+                src: "{{ disk_location }}"
+                dest: "{{ debug_disk }}"
+                remote_src: true
+
+            - name: Connect disk image to NBD device
+              ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
+
+            - name: Query NBD mount target
+              ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
+              register: fdisk_nbd
+
+            - name: Mount guest image file
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                fstype: ext4
+                state: ephemeral
+
+            - name: Query guest installation files
+              ansible.builtin.find:
+                paths: "{{ debug_logfile | dirname }}"
+                recurse: no
+                file_type: file
+              register: debug_files
+
+            - name: Debug guest installation files
+              ansible.builtin.debug:
+                msg: "{{ debug_files.files | map(attribute='path') }}"
+
+            - name: Query guest crash files
+              ansible.builtin.find:
+                paths: "{{ debug_crashdir }}"
+                recurse: no
+                file_type: file
+              register: crash_files
+
+            - name: Debug guest crash files
+              ansible.builtin.debug:
+                msg: "{{ crash_files.files | map(attribute='path') }}"
+
+            - name: Copy guest installation log
+              ansible.builtin.copy:
+                src: "{{ debug_logfile }}"
+                dest: "{{ debug_output_file }}"
+                remote_src: true
+              when: debug_logfile in (debug_files.files | map(attribute='path'))
+
+            - name: Debug installation log location
+              ansible.builtin.debug:
+                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_file }}"
+
+            - name: Unmount guest
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                state: unmounted
+
+            - name: Disconnect disk image from NBD device
+              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"

@@ -35,6 +35,7 @@ Please make sure your environment has [docker](https://www.docker.com) installed
 
 Role is tested from an Ansible controller running Ubuntu Focal. Target iso flavors are:
   * Ubuntu Focal
+  * Ubuntu Jammy
   
 It's designed to work on a controller running any recent Ubuntu release (Bionic/Focal)
 

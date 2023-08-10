@@ -152,6 +152,7 @@
         - name: Take guest screenshot
           ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
           delegate_to: localhost
+          when: molecule_debug
           become: true
 
         - name: End play for lvm guests

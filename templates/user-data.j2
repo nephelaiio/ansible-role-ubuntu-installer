@@ -32,6 +32,8 @@ autoinstall:
     security:
       - arches: [default]
         uri: http://{{ _mirror_security }}/ubuntu/
+    fallback:
+      - offline-install
   identity:
     hostname: {{ _fqdn }}
     username: {{ _ssh_user }}

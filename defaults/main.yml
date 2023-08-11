@@ -26,7 +26,7 @@ ubuntu_installer_poweroff: false
 ubuntu_installer_mirror: archive.ubuntu.com
 ubuntu_installer_image_packages: []
 ubuntu_installer_security_mirror: security.ubuntu.com
-ubuntu_installer_image_url: https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso
+ubuntu_installer_image_url: https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso
 ubuntu_installer_iso_path: "{{ ubuntu_installer_target_dir }}/{{ ubuntu_installer_hostname }}.orig.iso"
 ubuntu_installer_partman_method: lvm  # [(lvm)|(regular)]
 ubuntu_installer_cloudinit: /nocloud

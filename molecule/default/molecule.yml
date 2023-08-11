@@ -28,7 +28,7 @@ provisioner:
       all:
         vars:
           molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
-          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/jammy/ubuntu-22.04.2-live-server-amd64.iso') }}"
+          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default='https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso') }}"
           molecule_debug: "{{ lookup('env', 'GITHUB_ACTIONS', default='false') | bool }}"
           cache_dir: "/tmp/{{ molecule_distro }}"
           output_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"

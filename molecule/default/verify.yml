@@ -192,15 +192,16 @@
             - name: Connect disk image to NBD device
               ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
 
-            - name: Query NBD partitions
-              ansible.builtin.command: "sfdisk -J /dev/nbd{{ disk_index }}"
+            - name: Query NBD mount target
+              ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
               register: fdisk_nbd
 
-            - name: Set NBD partition facts
-              ansible.builtin.set_fact:
-                nbd_partition: "{{ _nbd_data.partitiontable.partitions[-1] }}"
-              vars:
-                _nbd_data: "{{ fdisk_nbd.stdout }}"
+            - name: Mount guest image file
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                fstype: ext4
+                state: ephemeral
 
             - name: Mount guest image file
               ansible.posix.mount:

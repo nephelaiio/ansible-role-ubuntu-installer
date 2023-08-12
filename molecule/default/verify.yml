@@ -211,7 +211,7 @@
             - name: Mount guest image file
               ansible.posix.mount:
                 path: "{{ debug_hostdir }}"
-                src: "{{ nbd_partition.node }}"
+                src: "{{ nbd_partition }}"
                 fstype: ext4
                 state: ephemeral
 

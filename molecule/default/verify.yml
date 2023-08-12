@@ -196,6 +196,11 @@
               ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
               register: fdisk_nbd
 
+
+            - name: Set NBD partition facts
+              ansible.builtin.set_fact:
+                nbd_partition: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+
             - name: Mount guest image file
               ansible.posix.mount:
                 path: "{{ debug_hostdir }}"

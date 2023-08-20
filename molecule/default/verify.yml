@@ -152,6 +152,7 @@
         - name: Take guest screenshot
           ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
           delegate_to: localhost
+          when: molecule_debug
           become: true
 
         - name: End play for lvm guests
@@ -195,10 +196,22 @@
               ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
               register: fdisk_nbd
 
+
+            - name: Set NBD partition facts
+              ansible.builtin.set_fact:
+                nbd_partition: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+
             - name: Mount guest image file
               ansible.posix.mount:
                 path: "{{ debug_hostdir }}"
                 src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                fstype: ext4
+                state: ephemeral
+
+            - name: Mount guest image file
+              ansible.posix.mount:
+                path: "{{ debug_hostdir }}"
+                src: "{{ nbd_partition }}"
                 fstype: ext4
                 state: ephemeral
 

@@ -11,7 +11,7 @@ Please refer to the [defaults file](/defaults/main.yml) for a full list of input
 
 ## Example Playbook
 
-The following example will create an unattended iso for deploying vm.nephelai.io with Ubuntu Focal (22.04.2) pulled from releases.ubuntu.com (default)
+The following example will create an unattended iso for deploying vm.nephelai.io with Ubuntu Focal (22.04.3) pulled from releases.ubuntu.com (default)
 
 ```
 - hosts: localhost

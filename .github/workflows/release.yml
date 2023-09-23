@@ -27,6 +27,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Update ubuntu repositories
+        run: sudo apt-get update
+
       - name: Install libvirt libraries
         run: sudo apt-get install -y libvirt-dev
 

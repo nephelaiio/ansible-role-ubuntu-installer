@@ -38,3 +38,5 @@ jobs:
 
       - name: Trigger a new import on galaxy
         run: make publish
+        env:
+          GALAXY_API_KEY: "${{ secrets.GALAXY_API_KEY }}"

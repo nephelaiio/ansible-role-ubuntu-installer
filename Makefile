@@ -3,8 +3,9 @@
 MOLECULE_SCENARIO ?= default
 MOLECULE_DOCKER_IMAGE ?= ubuntu2004
 GALAXY_API_KEY ?=
-GITHUB_ORGANIZATION ?= $$(git config --get remote.origin.url | cut -d/ -f 1 | cut -d: -f 2)
-GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d/ -f 2 | cut -d. -f 1)
+GITHUB_ACTION_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut -d. -f 1)
+GITHUB_ORGANIZATION = $$(echo ${GITHUB_ACTION_REPOSITORY} | cut -d/ -f 1)
+GITHUB_REPOSITORY = $$(echo ${GITHUB_ACTION_REPOSITORY} | cut -d/ -f 2)
 
 install:
 	@type poetry >/dev/null || pip3 install poetry

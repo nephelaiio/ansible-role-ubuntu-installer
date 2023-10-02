@@ -15,7 +15,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the codebase.
+      - name: Check out the codebase
         uses: actions/checkout@v3
         with:
           path: 'nephelaiio.ubuntu_installer'
@@ -28,20 +28,11 @@ jobs:
       - name: Update ubuntu repositories
         run: sudo apt-get update
 
-      - name: Install libvirt libraries
-        run: sudo apt-get install -y libvirt-dev
+      - name: Install make
+        run: sudo apt-get install -y make
 
-      - name: Install poetry
-        run: pip install poetry
+      - name: Install dependencies
+        run: make install
 
-      - name: Install test dependencies.
-        run: poetry install
-
-      - name: Lint code with ansible-lint
-        run: poetry run ansible-lint .
-
-      - name: Lint code with yamllint
-        run: poetry run yamllint .
-
-      - name: Lint code with molecule
-        run: poetry run molecule syntax
+      - name: Lint code
+        run: make lint

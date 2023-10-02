@@ -41,17 +41,14 @@ jobs:
       - name: Update ubuntu repositories
         run: sudo apt-get update
 
-      - name: Install libvirt libraries
-        run: sudo apt-get install -y libvirt-dev
+      - name: Install make
+        run: sudo apt-get install -y make
 
-      - name: Install poetry
-        run: pip install poetry
-
-      - name: Install test dependencies.
-        run: poetry install
+      - name: Install dependencies
+        run: make install
 
       - name: Run Molecule tests.
-        run: poetry run molecule test
+        run: make test
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

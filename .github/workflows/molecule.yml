@@ -47,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: make install
 
+      - name: Debug test environment
+        run: make debug
+
       - name: Run Molecule tests.
         run: make test
         env:

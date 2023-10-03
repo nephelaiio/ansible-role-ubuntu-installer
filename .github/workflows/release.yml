@@ -40,4 +40,4 @@ jobs:
         run: make publish
         env:
           GALAXY_API_KEY: "${{ secrets.GALAXY_API_KEY }}"
-          GITHUB_ACTION_REPOSITORY: "${{ github.action_repository }}"
+          GITHUB_REPOSITORY: "${{ github.repository }}"

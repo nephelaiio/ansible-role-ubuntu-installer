@@ -1,6 +1,6 @@
 # nephelaiio.ubuntu-installer
 
-[![Build Status](https://github.com/nephelaiio/ansible-role-ubuntu-installer/workflows/CI/badge.svg)](https://github.com/nephelaiio/ansible-role-ubuntu-installer/actions)
+[![Build Status](https://github.com/nephelaiio/ansible-role-ubuntu-installer/actions/workflows/molecule.yml/badge.svg)](https://github.com/nephelaiio/ansible-role-ubuntu-installer/actions/workflows/molecule.yml)
 [![Ansible Galaxy](http://img.shields.io/badge/ansible--galaxy-nephelaiio.ubuntu-installer-blue.svg)](https://galaxy.ansible.com/nephelaiio/ubuntu-installer/)
 
 An [ansible role](https://galaxy.ansible.com/nephelaiio/ubuntu-installer) to generate unattended installation isos for Ubuntu server.

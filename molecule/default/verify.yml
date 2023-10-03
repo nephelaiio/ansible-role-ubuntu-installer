@@ -89,7 +89,9 @@
           become: true
 
         - name: Gather partition info
-          ansible.builtin.shell: "lsblk -l | grep /$"
+          ansible.builtin.shell:
+            cmd: "set -o pipefail && lsblk -l | grep /$"
+            executable: /bin/bash
           register: lsblk_output
 
         - name: Check static partitioning
@@ -195,7 +197,6 @@
             - name: Query NBD mount target
               ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
               register: fdisk_nbd
-
 
             - name: Set NBD partition facts
               ansible.builtin.set_fact:

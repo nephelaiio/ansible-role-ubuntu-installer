@@ -1,2 +1,8 @@
 # This file contains ignores rule violations for ansible-lint
-meta/main.yml schema[meta]
+molecule/default/cleanup.yml no-changed-when
+molecule/default/converge.yml risky-file-permissions
+molecule/default/prepare.yml no-changed-when
+molecule/default/verify.yml no-changed-when
+molecule/default/verify.yml risky-file-permissions
+molecule/default/verify.yml run-once[task]
+requirements.yml schema[requirements]

@@ -57,7 +57,7 @@
         state: present
 
     - name: Enable ipv4 forwarding
-      ansible.builtin.sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.ip_forward
         value: '1'
         state: present

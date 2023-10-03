@@ -14,13 +14,11 @@
   ansible.builtin.file:
     state: directory
     path: "{{ ubuntu_installer_target_dir }}"
-    mode: 0750
 
 - name: Fetch source ISO
   ansible.builtin.get_url:
     url: "{{ ubuntu_installer_image_url }}"
     dest: "{{ ubuntu_installer_iso_path }}"
-    mode: 0644
 
 - name: Extract ISO contents
   ansible.builtin.command: "7z -y x {{ ubuntu_installer_iso_path }} -o{{ tmpdir_dest.path }}"
@@ -35,7 +33,6 @@
   ansible.builtin.file:
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}"
     state: directory
-    mode: 0750
 
 - name: Set interface prefix
   ansible.builtin.set_fact:
@@ -48,7 +45,6 @@
   ansible.builtin.template:
     src: "user-data.j2"
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}/user-data"
-    mode: 0644
   vars:
     _ssh_user: "{{ ubuntu_installer_username }}"
     _ssh_pass: "{{ ubuntu_installer_password }}"
@@ -68,7 +64,6 @@
   ansible.builtin.file:
     dest: "{{ tmpdir_dest.path }}{{ ubuntu_installer_cloudinit }}/meta-data"
     state: touch
-    mode: 0644
 
 - name: Detect isolinux bootloader
   ansible.builtin.stat:
@@ -91,7 +86,6 @@
       }
 
       grub_platform
-    mode: 0644
   vars:
     nocloud_dir: "{{ ubuntu_installer_cloudinit }}"
 
@@ -108,7 +102,6 @@
       ansible.builtin.template:
         src: isolinux.live.j2
         dest: "{{ tmpdir_dest.path }}/isolinux/txt.cfg"
-        mode: 0644
       vars:
         kernel_file: /casper/vmlinuz
         initrd_file: /casper/initrd

@@ -6,3 +6,4 @@ molecule/default/verify.yml no-changed-when
 molecule/default/verify.yml risky-file-permissions
 molecule/default/verify.yml run-once[task]
 requirements.yml schema[requirements]
+tasks/main.yml risky-file-permissions

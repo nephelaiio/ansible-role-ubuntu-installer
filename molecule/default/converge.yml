@@ -87,7 +87,7 @@
         path: "{{ guest_disk }}"
         owner: libvirt-qemu
         group: kvm
-        mode: 0640
+        mode: 0644
       vars:
         guest_disk: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
       loop_control:

@@ -5,7 +5,7 @@ dependency:
     role-file: ${MOLECULE_PROJECT_DIRECTORY}//requirements.yml
     requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
 driver:
-  name: delegated
+  name: default
   options:
     managed: false
     ansible_connection_options:

@@ -2,8 +2,8 @@
 dependency:
   name: galaxy
   options:
-    role-file: ${MOLECULE_PROJECT_DIRECTORY}//requirements.yml
-    requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
+    role-file: requirements.yml
+    requirements-file: requirements.yml
 driver:
   name: default
   options:

@@ -161,7 +161,7 @@
           ansible.builtin.meta: end_host
           when: partitioning_method != 'regular'
 
-        - name: End play guests with disks over 11GB
+        - name: End play for guests with disks over 11GB
           ansible.builtin.meta: end_host
           when: disk_size > 11 * gb
           vars:

@@ -32,7 +32,7 @@
         path: "{{ guest_disk }}"
         state: absent
       vars:
-        guest_disk: "{{ playbook_dir }}/{{ guest.installer_hostname }}.img"
+        guest_disk: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
       loop_control:
         loop_var: guest
         label: "{{ guest.installer_hostname }}"

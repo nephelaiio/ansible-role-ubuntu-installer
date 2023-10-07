@@ -22,7 +22,6 @@ provisioner:
       interpreter_python: auto_silent
       callbacks_enabled: ansible.posix.profile_tasks
       callback_whitelist: profile_tasks, timer, yaml
-      host_key_checking: false
   inventory:
     hosts:
       all:
@@ -42,6 +41,7 @@ provisioner:
           bridge_iface: "{{ molecule_distro }}0"
 
           kvm_keypair: "{{ cache_dir }}/kvm_key"
+          ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
           iso_installer:
             dest: "file://{{ cache_dir }}/server-live.iso"

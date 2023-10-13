@@ -6,6 +6,7 @@ GALAXY_API_KEY ?=
 GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut -d. -f 1)
 GITHUB_ORG = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 1)
 GITHUB_REPO = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 2)
+REQUIREMENTS = requirements.yml
 
 all: install version lint test
 
@@ -21,6 +22,16 @@ lint: install
 	poetry run yamllint .
 	poetry run ansible-lint .
 	poetry run molecule syntax
+
+roles:
+	[ -f ${REQUIREMENTS} ] && yq '.$@[] | .name' -r < ${REQUIREMENTS} \
+		| xargs -L1 poetry run ansible-galaxy role install --force || exit 0
+
+collections:
+	[ -f ${REQUIREMENTS} ] && yq '.$@[]' -r < ${REQUIREMENTS} \
+		| xargs -L1 echo poetry run ansible-galaxy -vvv collection install --force || exit 0
+
+requirements: roles collections
 
 dependency create prepare converge idempotence side-effect verify destroy login reset:
 	MOLECULE_DOCKER_IMAGE=${MOLECULE_DOCKER_IMAGE} poetry run molecule $@ -s ${MOLECULE_SCENARIO}

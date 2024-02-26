@@ -9,7 +9,7 @@ REQUIREMENTS = requirements.yml
 UBUNTU_DISTRO ?= jammy
 UBUNTU_SHASUMS = https://releases.ubuntu.com/${UBUNTU_DISTRO}/SHA256SUMS
 UBUNTU_MIRROR = $$(dirname ${UBUNTU_SHASUMS})
-UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server" | awk '{print $$2}' | sed -e 's/\*//g')
+UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server-amd64" | awk '{print $$2}' | sed -e 's/\*//g')
 
 all: install version lint test
 

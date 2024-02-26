@@ -1,0 +1,7 @@
+---
+_libvirt_network: "{{ molecule_libvirt_network | default('rke') }}"
+_libvirt_address: "{{ molecule_libvirt_address | default('172.31.255.1/24') }}"
+_libvirt_dhcp: "{{ molecule_libvirt_dhcp | default(_libvirt_address) }}"
+_libvirt_user: "{{ molecule_libvirt_user | default('molecule') }}"
+_libvirt_pool: "{{ molecule_libvirt_pool | default('molecule') }}"
+_libvirt_path: "{{ molecule_libvirt_path | default('/var/lib/libvirt/molecule') }}"

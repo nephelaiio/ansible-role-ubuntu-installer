@@ -1,19 +1,16 @@
 ---
-name: Release
+name: release
 on:
   push:
     tags:
       - "*"
 
 defaults:
-
   run:
     working-directory: 'nephelaiio.ubuntu_installer'
 
 jobs:
-
   release:
-
     name: Release
     runs-on: ubuntu-latest
     steps:

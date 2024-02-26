@@ -1,0 +1,65 @@
+---
+- name: Destroy KVM guests
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Destroy KVM guest
+      community.libvirt.virt:
+        state: destroyed
+        name: "{{ guest.installer_hostname }}"
+      loop_control:
+        loop_var: guest
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ molecule_kvm_guests }}"
+      failed_when: false
+
+    - name: Undefine KVM guest
+      community.libvirt.virt:
+        command: undefine
+        name: "{{ guest.installer_hostname }}"
+      loop_control:
+        loop_var: guest
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ molecule_kvm_guests }}"
+      failed_when: false
+
+    - name: Destroy KVM guest disks
+      ansible.builtin.file:
+        path: "{{ guest_disk }}"
+        state: absent
+      vars:
+        guest_disk: "{{ molecule_libvirt_path }}/{{ guest.installer_hostname }}.img"
+      loop_control:
+        loop_var: guest
+        label: "{{ guest.installer_hostname }}"
+      loop: "{{ molecule_kvm_guests }}"
+
+
+- name: Destroy libvirt network and storage
+  hosts: localhost
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Stop libvirt network
+      community.libvirt.virt_net:
+        command: destroy
+        name: "{{ _libvirt_network }}"
+      when: _libvirt_network != "default"
+      failed_when: false
+
+    - name: Delete libvirt network
+      community.libvirt.virt_net:
+        command: undefine
+        name: "{{ _libvirt_network }}"
+      when: _libvirt_network != "default"
+
+    - name: Undefine libvirt pool
+      community.libvirt.virt_pool:
+        state: undefined
+        name: "{{ _libvirt_pool }}"
+
+    - name: Destroy libvirt pool
+      ansible.builtin.file:
+        path: "{{ _libvirt_pool }}"
+        state: absent

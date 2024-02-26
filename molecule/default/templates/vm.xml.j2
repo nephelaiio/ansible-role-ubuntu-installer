@@ -1,4 +1,4 @@
-<domain type='kvm' id='20'>
+<domain type='kvm'>
   <name>{{ guest_hostname }}</name>
   <memory unit='KiB'>4194304</memory>
   <currentMemory unit='KiB'>4194304</currentMemory>
@@ -146,9 +146,10 @@
       <alias name='virtio-serial0'/>
       <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
     </controller>
-    <interface type='bridge'>
-      <source bridge='{{ guest_bridge }}'/>
+    <interface type='network'>
+      <source network='{{ guest_network }}'/>
       <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+      <model type='virtio'/>
       <alias name='net0'/>
     </interface>
     <serial type='pty'>

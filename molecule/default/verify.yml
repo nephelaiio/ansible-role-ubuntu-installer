@@ -1,17 +1,12 @@
 ---
 - name: Verify ISO creation
-
   hosts: localhost
-
   tasks:
-
     - name: Retrieve guest ISO status
       ansible.builtin.stat:
-        path: "{{ cache_dir }}/{{ guest.installer_hostname }}.iso"
-      loop_control:
-        loop_var: guest
-        label: "{{ guest.installer_hostname }}"
-      loop: "{{ guests }}"
+        path: "{{ molecule_libvirt_path }}/{{ item }}.iso"
+      loop: "{{ molecule_kvm_guests | map(attribute='installer_hostname') }}"
+      become: true
       register: guest_isos
 
     - name: Verify ISO creation
@@ -25,13 +20,9 @@
 
 
 - name: Add guests to inventory
-
   hosts: localhost
-
   become: true
-
   tasks:
-
     - name: Add guest to inventory
       ansible.builtin.add_host:
         name: "{{ guest_hostname }}"
@@ -39,43 +30,34 @@
           - install
         ansible_user: molecule
         ansible_host: "{{ guest_address }}"
-        ansible_port: "{{ guest_port }}"
-        ansible_ssh_private_key_file: "{{ kvm_keypair }}"
+        ansible_ssh_private_key_file: "{{ molecule_kvm_keypair }}"
         partitioning_method: "{{ guest.installer_partitioning_method }}"
-        disk_location: "{{ cache_dir }}/{{ guest.installer_hostname }}.img"
+        disk_location: "{{ molecule_libvirt_path }}/{{ guest.installer_hostname }}.img"
         disk_size: "{{ guest.installer_disk_size }}"
         disk_index: "{{ disk_index }}"
       vars:
         guest_hostname: "{{ guest.installer_hostname }}"
-        bridge_address: "{{ guest.installer_interface.ipaddress }}"
-        guest_address: "{{ bridge_address }}"
-        guest_port: 22
+        guest_address: "{{ guest.installer_interface.ipaddress }}"
       loop_control:
         loop_var: guest
         index_var: disk_index
         label: "{{ guest.installer_hostname }}"
-      loop: "{{ guests }}"
+      loop: "{{ molecule_kvm_guests }}"
 
 
 - name: Verify guests
-
   hosts: install
-
   gather_facts: false
-
   tasks:
-
     - name: Debug connection parameters
       ansible.builtin.debug:
         msg: >
           ssh {{ ansible_user }}@{{ ansible_host }}
           {{ ansible_ssh_common_args | default('') }}
           -i {{ ansible_ssh_private_key_file }}
-          -p {{ ansible_port }}
 
     - name: Wait for connection
       block:
-
         - name: Wait for guest
           ansible.builtin.wait_for_connection:
             sleep: 10
@@ -105,7 +87,6 @@
         - name: Check lvm partitioning
           when: partitioning_method == 'lvm'
           block:
-
             - name: Check lvm partitioning
               ansible.builtin.fail:
                 msg: "lvm partitioning failed: {{ lsblk_output.stdout }}"
@@ -129,18 +110,17 @@
           when: (installer_root_size | int) < (installer_root_threshold | int)
 
       always:
-
         - name: Set debug facts
           ansible.builtin.set_fact:
             debug_disk: "{{ disk_location }}.debug"
             debug_hostdir: "{{ _hostdir }}"
             debug_logfile: "{{ _logfile }}"
             debug_crashdir: "{{ _crashdir }}"
-            debug_output_dir: "{{ output_dir }}"
-            debug_output_curtin: "{{ output_dir }}/{{ inventory_hostname }}.curtin.log"
-            debug_output_screenshot: "{{ output_dir }}/{{ inventory_hostname }}.png"
+            debug_output_dir: "{{ molecule_install_dir }}"
+            debug_output_curtin: "{{ molecule_install_dir }}/{{ inventory_hostname }}.curtin.log"
+            debug_output_screenshot: "{{ molecule_install_dir }}/{{ inventory_hostname }}.png"
           vars:
-            _hostdir: "{{ cache_dir }}/{{ inventory_hostname }}"
+            _hostdir: "{{ molecule_libvirt_path }}/{{ inventory_hostname }}"
             _logfile: "{{ _hostdir }}/var/log/installer/curtin-install.log"
             _crashdir: "{{ _hostdir }}/var/crash/"
 
@@ -154,7 +134,6 @@
         - name: Take guest screenshot
           ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
           delegate_to: localhost
-          when: molecule_debug
           become: true
 
         - name: End play for lvm guests
@@ -171,7 +150,6 @@
           delegate_to: localhost
           become: true
           block:
-
             - name: Create output hostname directory
               ansible.builtin.file:
                 state: directory

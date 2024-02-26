@@ -1,16 +1,21 @@
 .PHONY: all ${MAKECMDGOALS}
 
 MOLECULE_SCENARIO ?= default
-MOLECULE_DOCKER_IMAGE ?= ubuntu2004
 GALAXY_API_KEY ?=
 GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut -d. -f 1)
 GITHUB_ORG = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 1)
 GITHUB_REPO = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 2)
 REQUIREMENTS = requirements.yml
+UBUNTU_DISTRO ?= jammy
+UBUNTU_SHASUMS = https://releases.ubuntu.com/${UBUNTU_DISTRO}/SHA256SUMS
+UBUNTU_MIRROR = $$(dirname ${UBUNTU_SHASUMS})
+UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server-amd64" | awk '{print $$2}' | sed -e 's/\*//g')
 
 all: install version lint test
 
 test: lint
+	MOLECULE_DISTRO=${UBUNTU_DISTRO} \
+	MOLECULE_ISO=${UBUNTU_MIRROR}/${UBUNTU_ISO} \
 	poetry run molecule $@ -s ${MOLECULE_SCENARIO}
 
 install:
@@ -34,7 +39,9 @@ collections:
 requirements: roles collections
 
 dependency create prepare converge idempotence side-effect verify destroy login reset:
-	MOLECULE_DOCKER_IMAGE=${MOLECULE_DOCKER_IMAGE} poetry run molecule $@ -s ${MOLECULE_SCENARIO}
+	MOLECULE_DISTRO=${UBUNTU_DISTRO} \
+	MOLECULE_ISO=${UBUNTU_MIRROR}/${UBUNTU_ISO} \
+	poetry run molecule $@ -s ${MOLECULE_SCENARIO}
 
 ignore:
 	poetry run ansible-lint --generate-ignore

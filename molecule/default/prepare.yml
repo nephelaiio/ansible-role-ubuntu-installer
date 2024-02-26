@@ -1,76 +1,72 @@
 ---
-- name: Prepare host networking
-
+- name: Configure KVM host
   hosts: localhost
-
   become: true
-
+  vars_files:
+    - vars.yml
   tasks:
-
-    - name: Update apt package cache
-      ansible.builtin.apt:
-        update_cache: true
-      when: ansible_os_family == 'Debian'
-
-    - name: Create molecule cache dir
-      ansible.builtin.file:
-        path: "{{ cache_dir }}"
-        state: directory
-        mode: 0777
-      become: false
-
-    - name: Create KVM keypair
-      ansible.builtin.command:
-        cmd: "ssh-keygen -t rsa -f {{ kvm_keypair }} -q -P '' -C ''"
-        creates: "{{ kvm_keypair }}"
-      become: false
-
-    - name: Create dummy bridge
-      ansible.builtin.command: "ip link add {{ bridge_name }} type bridge"
-      failed_when: false
-
-    - name: Create dummy interface
-      ansible.builtin.command: "ip link add {{ bridge_iface }} type dummy"
-      failed_when: false
-
-    - name: Create dummy bridge slave
-      ansible.builtin.command: "ip link set {{ bridge_iface }} master {{ bridge_name }}"
-      failed_when: false
-
-    - name: Set bridge interface ip address
-      ansible.builtin.command: "ip addr add {{ bridge_host }}/{{ bridge_prefix }} dev {{ bridge_name }}"
-      failed_when: false
-
-    - name: Start bridge interface
-      ansible.builtin.command: "ip link set dev {{ bridge_name }} up"
-      failed_when: false
-
-    - name: Masquerade bridge
-      ansible.builtin.iptables:
-        table: nat
-        chain: POSTROUTING
-        out_interface: "{{ ansible_default_ipv4.interface }}"
-        source: "{{ bridge_net }}"
-        destination: 0.0.0.0/0
-        jump: MASQUERADE
-        protocol: all
-        state: present
-
-    - name: Enable ipv4 forwarding
-      ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
-        value: '1'
-        state: present
-        reload: True
-
-    - name: Install KVM requirements
-      ansible.builtin.apt:
+    - name: Install package requirements
+      ansible.builtin.package:
         name:
-          - qemu
           - qemu-kvm
           - qemu-efi
           - libvirt-clients
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
           - python3-libvirt
-      when: ansible_os_family == 'Debian'
+      become: true
+
+    - name: Query libvirt pools
+      community.libvirt.virt_pool:
+        command: list_pools
+      register: _pools
+
+    - name: Create libvirt path
+      ansible.builtin.file:
+        path: "{{ _libvirt_path }}"
+        state: directory
+        owner: libvirt-qemu
+        group: kvm
+        mode: 0755
+      become: true
+
+    - name: Define libvirt pool
+      community.libvirt.virt_pool:
+        command: define
+        name: "{{ _libvirt_pool }}"
+        xml: "{{ lookup('ansible.builtin.template', 'pool.j2.xml') }}"
+      vars:
+        _pool: "{{ _libvirt_pool }}"
+        _path: "{{ _libvirt_path }}"
+
+    - name: Activate libvirt pool
+      community.libvirt.virt_pool:
+        state: active
+        name: "{{ _libvirt_pool }}"
+
+    - name: Add libvirt network
+      community.libvirt.virt_net:
+        command: define
+        name: "{{ _libvirt_network }}"
+        xml: "{{ lookup('ansible.builtin.template', 'network.j2.xml') }}"
+      vars:
+        _network: "{{ _libvirt_network }}"
+        _address: "{{ _libvirt_address }}"
+        _dhcp: "{{ _libvirt_dhcp }}"
+        _net_address: "{{ _address | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}"
+        _net_mask: "{{ _address | ansible.utils.ipaddr('netmask') }}"
+        _net_dhcp_start: "{{ _dhcp | ansible.utils.ipaddr('2') | ansible.utils.ipaddr('address') }}"
+        _net_dhcp_end: "{{ _dhcp | ansible.utils.ipaddr('-2') | ansible.utils.ipaddr('address') }}"
+      when: _libvirt_network != "default"
+
+    - name: Start libvirt network
+      community.libvirt.virt_net:
+        command: create
+        name: "{{ _libvirt_network }}"
+      when: _libvirt_network != "default"
+
+    - name: Create KVM keypair
+      ansible.builtin.command:
+        cmd: "ssh-keygen -t rsa -f {{ molecule_kvm_keypair }} -q -P '' -C ''"
+        creates: "{{ molecule_kvm_keypair }}"
+      become: false

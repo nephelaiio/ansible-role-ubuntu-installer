@@ -1,5 +1,5 @@
 ---
-name: Molecule
+name: molecule
 
 on:
   pull_request:
@@ -13,7 +13,6 @@ defaults:
     working-directory: 'nephelaiio.ubuntu_installer'
 
 jobs:
-
   molecule:
     name: molecule
     runs-on: libvirt
@@ -24,7 +23,6 @@ jobs:
             net: '192.168.255.0/24'
           - distro: 'focal'
             net: '192.168.254.0/24'
-
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v3

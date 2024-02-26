@@ -21,10 +21,8 @@ jobs:
       matrix:
         include:
           - distro: 'jammy'
-            url: 'https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso'
             net: '192.168.255.0/24'
           - distro: 'focal'
-            url: 'https://releases.ubuntu.com/focal/ubuntu-20.04.6-live-server-amd64.iso'
             net: '192.168.254.0/24'
 
     steps:

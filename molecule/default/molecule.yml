@@ -26,37 +26,29 @@ provisioner:
     hosts:
       all:
         vars:
-          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
-          molecule_iso_default: 'https://releases.ubuntu.com/jammy/ubuntu-22.04.3-live-server-amd64.iso'
-          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO', default=molecule_iso_default) }}"
-          molecule_debug: "{{ lookup('env', 'GITHUB_ACTIONS', default='false') | bool }}"
-          cache_dir: "/tmp/{{ molecule_distro }}"
-          output_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"
-
-          molecule_net: "{{ lookup('env', 'MOLECULE_NET', default='192.168.255.0/24') }}"
-          bridge_net: "{{ molecule_net | ansible.utils.ipv4('network/prefix') }}"
-          bridge_host: "{{ bridge_net | ansible.utils.nthhost(1) }}"
-          bridge_prefix: "{{ bridge_net | ansible.utils.ipaddr('prefix') }}"
-          bridge_name: "{{ molecule_distro }}br0"
-          bridge_iface: "{{ molecule_distro }}0"
-
-          kvm_keypair: "{{ cache_dir }}/kvm_key"
           ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
-          iso_installer:
-            dest: "file://{{ cache_dir }}/server-live.iso"
-            url: "{{ molecule_iso }}"
+          ubuntu_installer_dest: "file://{{ molecule_libvirt_path }}/server-live.iso"
+          ubuntu_installer_url: "{{ molecule_iso }}"
 
-          guests:
-
+          molecule_libvirt_netaddr: "{{ lookup('env', 'MOLECULE_NET', default='192.168.245.0/24') | ansible.utils.ipv4('network/prefix') }}"
+          molecule_libvirt_netsize: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('prefix') }}"
+          molecule_libvirt_address: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(1) }}/{{ molecule_libvirt_netsize }}"
+          molecule_libvirt_network: "molecule"
+          molecule_libvirt_path: "/var/lib/libvirt/ubuntu"
+          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
+          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO') }}"
+          molecule_install_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"
+          molecule_kvm_keypair: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/kvm_key"
+          molecule_kvm_guests:
             - installer_hostname: "{{ molecule_distro }}-lvm-10g"
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | ansible.utils.nthhost(2) }}"
-                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ bridge_host }}"
+                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(2) }}"
+                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
+                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
                 nameservers:
                   - 1.1.1.1
                   - 8.8.8.8
@@ -66,10 +58,10 @@ provisioner:
               installer_disk_size: "{{ 10*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | ansible.utils.nthhost(3) }}"
-                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ bridge_host }}"
+                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(3) }}"
+                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
+                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
                 nameservers:
                   - 1.1.1.1
                   - 8.8.8.8
@@ -79,10 +71,10 @@ provisioner:
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | ansible.utils.nthhost(4) }}"
-                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ bridge_host }}"
+                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(4) }}"
+                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
+                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
                 nameservers:
                   - 1.1.1.1
                   - 8.8.8.8
@@ -92,10 +84,10 @@ provisioner:
               installer_disk_size: "{{ 50*(1024**3) }}"
               installer_interface:
                 static: true
-                ipaddress: "{{ bridge_net | ansible.utils.nthhost(5) }}"
-                network: "{{ bridge_net | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ bridge_net | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ bridge_host }}"
+                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(5) }}"
+                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
+                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
+                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
                 nameservers:
                   - 1.1.1.1
                   - 8.8.8.8

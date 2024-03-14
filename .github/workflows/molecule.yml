@@ -25,7 +25,7 @@ jobs:
             net: '192.168.254.0/24'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           path: 'nephelaiio.ubuntu_installer'
 

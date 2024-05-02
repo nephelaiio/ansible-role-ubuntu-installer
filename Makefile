@@ -6,7 +6,7 @@ GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut 
 GITHUB_ORG = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 1)
 GITHUB_REPO = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 2)
 REQUIREMENTS = requirements.yml
-UBUNTU_DISTRO ?= jammy
+UBUNTU_DISTRO ?= noble
 UBUNTU_SHASUMS = https://releases.ubuntu.com/${UBUNTU_DISTRO}/SHA256SUMS
 UBUNTU_MIRROR = $$(dirname ${UBUNTU_SHASUMS})
 UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server-amd64" | awk '{print $$2}' | sed -e 's/\*//g')
@@ -21,22 +21,12 @@ test: lint
 install:
 	@type poetry >/dev/null || pip3 install poetry
 	@sudo apt-get install -y libvirt-dev
-	@poetry install
+	@poetry install --no-root
 
 lint: install
 	poetry run yamllint .
 	poetry run ansible-lint .
 	poetry run molecule syntax
-
-roles:
-	[ -f ${REQUIREMENTS} ] && yq '.$@[] | .name' -r < ${REQUIREMENTS} \
-		| xargs -L1 poetry run ansible-galaxy role install --force || exit 0
-
-collections:
-	[ -f ${REQUIREMENTS} ] && yq '.$@[]' -r < ${REQUIREMENTS} \
-		| xargs -L1 echo poetry run ansible-galaxy -vvv collection install --force || exit 0
-
-requirements: roles collections
 
 dependency create prepare converge idempotence side-effect verify destroy login reset:
 	MOLECULE_DISTRO=${UBUNTU_DISTRO} \

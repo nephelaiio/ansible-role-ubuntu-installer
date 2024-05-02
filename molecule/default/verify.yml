@@ -173,26 +173,18 @@
               ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
 
             - name: Query NBD mount target
-              ansible.builtin.command: "fdisk -l /dev/nbd{{ disk_index }}"
+              ansible.builtin.command: "sfdisk --json /dev/nbd{{ disk_index }}"
               register: fdisk_nbd
 
-            - name: Set NBD partition facts
-              ansible.builtin.set_fact:
-                nbd_partition: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
-
             - name: Mount guest image file
               ansible.posix.mount:
                 path: "{{ debug_hostdir }}"
-                src: "{{ (fdisk_nbd.stdout_lines | last).split(' ') | first }}"
+                src: "{{ nbd_partition.node }}"
                 fstype: ext4
                 state: ephemeral
-
-            - name: Mount guest image file
-              ansible.posix.mount:
-                path: "{{ debug_hostdir }}"
-                src: "{{ nbd_partition }}"
-                fstype: ext4
-                state: ephemeral
+              vars:
+                nbd_partition: "{{ nbd_data.partitiontable.partitions | last }}"
+                nbd_data: "{{ fdisk_nbd.stdout | from_json }}"
 
             - name: Query guest installation files
               ansible.builtin.find:

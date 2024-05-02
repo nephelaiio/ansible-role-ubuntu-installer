@@ -33,11 +33,12 @@ Images are tested by provisioning kvm guests on github actions large runners
 
 Please make sure your environment has [docker](https://www.docker.com) installed in order to run role validation tests. Additional python dependencies are listed in the [requirements file](/requirements.txt)
 
-Role is tested from an Ansible controller running Ubuntu Focal. Target iso flavors are:
+Role is tested using Github Actions running Ubuntu Focal. Target iso flavors are:
   * Ubuntu Focal
   * Ubuntu Jammy
+  * Ubuntu Noble
   
-It's designed to work on a controller running any recent Ubuntu release (Bionic/Focal)
+It's designed to work on a controller running any recent Ubuntu release
 
 You can test the role directly from sources using command ` molecule test `. Note that this will reconfigure networking for network 192.168.255.0/24 which will be directly connected to a local bridge interface
 

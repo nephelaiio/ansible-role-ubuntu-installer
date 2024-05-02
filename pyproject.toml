@@ -10,12 +10,12 @@ readme = "README.md"
 python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
-ansible-lint = { version = "^24.2.0", markers = "platform_system != 'Windows'" }
-libvirt-python = "^9.8.0"
-molecule = "^6.0.3"
-netaddr = "^0.9.0"
-ansible = "^8.4.0"
-lxml = "^5.1.0"
+ansible-lint = { version = "^24.2.3", markers = "platform_system != 'Windows'" }
+ansible = "^9.5.1"
+molecule = "^24.2.1"
+netaddr = "^1.2.1"
+libvirt-python = "^10.2.0"
+lxml = "^5.2.1"
 passlib = "^1.7.4"
 
 [build-system]

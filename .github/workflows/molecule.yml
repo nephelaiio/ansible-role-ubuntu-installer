@@ -23,6 +23,8 @@ jobs:
             net: '192.168.255.0/24'
           - distro: 'focal'
             net: '192.168.254.0/24'
+          - distro: 'noble'
+            net: '192.168.253.0/24'
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4

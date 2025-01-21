@@ -9,7 +9,7 @@
       ansible.builtin.package:
         name:
           - qemu-kvm
-          - qemu-efi
+          - qemu-efi-aarch64
           - libvirt-clients
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd

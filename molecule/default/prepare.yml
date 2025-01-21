@@ -9,11 +9,15 @@
       ansible.builtin.package:
         name:
           - qemu-kvm
-          - qemu-efi-aarch64
+          - qemu-efi{{ _arch }}
           - libvirt-clients
           - libvirt-daemon-system
           - libvirt-daemon-system-systemd
           - python3-libvirt
+      vars:
+        _is_ubuntu: "{{ ansible_distribution == 'Ubuntu' }}"
+        _is_jammy: "{{ _is_ubuntu and (ansible_distribution_release is version_compare('22.04', '>=')) }}"
+        _arch: "{{ '-aarch64' if _isjammy else '' }}"
       become: true
 
     - name: Query libvirt pools

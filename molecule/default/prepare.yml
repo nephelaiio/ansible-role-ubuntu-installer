@@ -16,7 +16,7 @@
           - python3-libvirt
       vars:
         _is_ubuntu: "{{ ansible_distribution == 'Ubuntu' }}"
-        _is_jammy: "{{ _is_ubuntu and (ansible_distribution_release is version_compare('22.04', '>=')) }}"
+        _is_jammy: "{{ _is_ubuntu and (ansible_distribution_release is version('22.04', '>=')) }}"
         _arch: "{{ '-aarch64' if _is_jammy else '' }}"
       become: true
 

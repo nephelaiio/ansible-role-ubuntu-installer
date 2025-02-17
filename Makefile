@@ -1,8 +1,10 @@
 .PHONY: all ${MAKECMDGOALS}
 
+HOST_DISTRO = $$(grep ^ID /etc/os-release | cut -d '=' -f 2)
+PKGMAN = $$(if [ "$(HOST_DISTRO)" = "fedora" ]; then echo "dnf" ; else echo "apt-get"; fi)
 MOLECULE_SCENARIO ?= default
 GALAXY_API_KEY ?=
-GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut -d. -f 1)
+GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d':' -f 2 | cut -d. -f 1)
 GITHUB_ORG = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 1)
 GITHUB_REPO = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 2)
 REQUIREMENTS = requirements.yml
@@ -13,15 +15,16 @@ UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server-amd64" | awk '{pri
 
 all: install version lint test
 
+shell:
+	DEVBOX_USE_VERSION=0.13.1 devbox shell
+
 test: lint
 	MOLECULE_DISTRO=${UBUNTU_DISTRO} \
 	MOLECULE_ISO=${UBUNTU_MIRROR}/${UBUNTU_ISO} \
 	poetry run molecule $@ -s ${MOLECULE_SCENARIO}
 
 install:
-	@type poetry >/dev/null || pip3 install poetry
-	@poetry self add poetry-plugin-export
-	@sudo apt-get install -y libvirt-dev
+	@sudo ${PKGMAN} install -y $$(if [[ "${HOST_DISTRO}" == "fedora" ]]; then echo libvirt-devel; else echo libvirt-dev; fi)
 	@poetry install --no-root
 
 lint: install
@@ -50,6 +53,6 @@ publish:
 version:
 	@poetry run molecule --version
 
-debug: version
+debug: install version
 	@poetry export --dev --without-hashes || exit 0
 	sudo ufw status

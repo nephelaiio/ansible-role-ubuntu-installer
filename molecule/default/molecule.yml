@@ -26,7 +26,7 @@ provisioner:
     hosts:
       all:
         vars:
-          ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+          ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
           ubuntu_installer_dest: "file://{{ molecule_libvirt_path }}/server-live.iso"
           ubuntu_installer_url: "{{ molecule_iso }}"

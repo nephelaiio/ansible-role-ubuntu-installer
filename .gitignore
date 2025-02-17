@@ -10,3 +10,5 @@ playbook.retry
 **/id_rsa*
 .venv/
 logs/
+.ansible/
+.devbox/

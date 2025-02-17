@@ -1,5 +1,7 @@
 .PHONY: all ${MAKECMDGOALS}
 
+HOST_DISTRO = $$(grep ^ID /etc/os-release | cut -d '=' -f 2)
+PKGMAN = $$(if [ "$(HOST_DISTRO)" = "fedora" ]; then echo "dnf" ; else echo "apt-get"; fi)
 MOLECULE_SCENARIO ?= default
 GALAXY_API_KEY ?=
 GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d':' -f 2 | cut -d. -f 1)
@@ -22,6 +24,7 @@ test: lint
 	poetry run molecule $@ -s ${MOLECULE_SCENARIO}
 
 install:
+	@sudo ${PKGMAN} install -y $$(if [[ "${HOST_DISTRO}" == "fedora" ]]; then echo libvirt-devel; else echo libvirt-dev; fi)
 	@poetry install --no-root
 
 lint: install

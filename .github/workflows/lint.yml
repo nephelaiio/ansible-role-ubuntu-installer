@@ -1,14 +1,17 @@
 ---
 name: lint
 
+env:
+  DEVBOX_VERSION: ${{ vars.DEVBOX_VERSION }}
+
+defaults:
+  run:
+    working-directory: "nephelaiio.ubuntu_installer"
+
 on:
   pull_request:
     branches:
       - master
-
-defaults:
-  run:
-    working-directory: 'nephelaiio.ubuntu_installer'
 
 jobs:
   lint:
@@ -18,21 +21,13 @@ jobs:
       - name: Check out the codebase
         uses: actions/checkout@v4
         with:
-          path: 'nephelaiio.ubuntu_installer'
+          path: "nephelaiio.ubuntu_installer"
 
-      - name: Set up Python 3.
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
+      - name: Generate devbox locale
+        run: sudo locale-gen C.UTF-8
 
-      - name: Update ubuntu repositories
-        run: sudo apt-get update
-
-      - name: Install make
-        run: sudo apt-get install -y make
-
-      - name: Install dependencies
-        run: make install
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.12.0
 
       - name: Lint code
-        run: make lint
+        run: devbox run -- make lint

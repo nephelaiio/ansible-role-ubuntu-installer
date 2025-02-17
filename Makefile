@@ -2,7 +2,7 @@
 
 MOLECULE_SCENARIO ?= default
 GALAXY_API_KEY ?=
-GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d: -f 2 | cut -d. -f 1)
+GITHUB_REPOSITORY ?= $$(git config --get remote.origin.url | cut -d':' -f 2 | cut -d. -f 1)
 GITHUB_ORG = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 1)
 GITHUB_REPO = $$(echo ${GITHUB_REPOSITORY} | cut -d/ -f 2)
 REQUIREMENTS = requirements.yml
@@ -12,6 +12,9 @@ UBUNTU_MIRROR = $$(dirname ${UBUNTU_SHASUMS})
 UBUNTU_ISO = $$(curl -s ${UBUNTU_SHASUMS} | grep "live-server-amd64" | awk '{print $$2}' | sed -e 's/\*//g')
 
 all: install version lint test
+
+shell:
+	DEVBOX_USE_VERSION=0.13.1 devbox shell
 
 test: lint
 	MOLECULE_DISTRO=${UBUNTU_DISTRO} \

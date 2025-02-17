@@ -57,7 +57,7 @@ jobs:
       - name: Upload install logs
         uses: actions/upload-artifact@v4
         with:
-          name: install-logs
+          name: ${{ matrix.distro }}.log
           path: |
             /tmp/logs/*.png
             /tmp/logs/*.log

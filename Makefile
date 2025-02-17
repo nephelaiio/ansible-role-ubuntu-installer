@@ -22,9 +22,6 @@ test: lint
 	poetry run molecule $@ -s ${MOLECULE_SCENARIO}
 
 install:
-	@type poetry >/dev/null || pip3 install poetry
-	@poetry self add poetry-plugin-export
-	@sudo apt-get install -y libvirt-dev
 	@poetry install --no-root
 
 lint: install
@@ -53,6 +50,6 @@ publish:
 version:
 	@poetry run molecule --version
 
-debug: version
+debug: install version
 	@poetry export --dev --without-hashes || exit 0
 	sudo ufw status

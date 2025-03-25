@@ -5,6 +5,11 @@
   vars_files:
     - vars.yml
   tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
     - name: Install package requirements
       ansible.builtin.package:
         name:

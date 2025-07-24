@@ -1,7 +1,7 @@
 ---
-- name: Verify ISO creation
+- name: Verify guest ISO
   hosts: all
-  connection: local
+  gather_facts: false
   tasks:
     - name: Verify ISO creation
       delegate_to: localhost
@@ -18,7 +18,7 @@
             that: guest_iso.stat.exists | bool
             msg: Unable to find iso "{{ libvirt_guest_iso }}"
 
-- name: Verify guests
+- name: Verify guest deployment
   hosts: all
   gather_facts: false
   tasks:

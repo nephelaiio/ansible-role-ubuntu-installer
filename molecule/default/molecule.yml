@@ -6,12 +6,11 @@ dependency:
     requirements-file: requirements.yml
 driver:
   name: default
-  options:
-    managed: false
-    ansible_connection_options:
-      ansible_connection: local
 platforms:
-  - name: installer
+  - name: "${MOLECULE_SCENARIO_NAME}-lvm-10g"
+  - name: "${MOLECULE_SCENARIO_NAME}-static-10g"
+  - name: "${MOLECULE_SCENARIO_NAME}-lvm-50g"
+  - name: "${MOLECULE_SCENARIO_NAME}-static-50g"
 provisioner:
   name: ansible
   log: true
@@ -23,75 +22,83 @@ provisioner:
       callbacks_enabled: ansible.posix.profile_tasks
       callback_whitelist: profile_tasks, timer, yaml
   inventory:
-    hosts:
+    group_vars:
       all:
-        vars:
-          ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+        ubuntu_installer_target_dir: "{{ libvirt_path }}"
+        ubuntu_installer_dest: "{{ libvirt_path }}/server-live.iso"
+        ubuntu_installer_url: "{{ molecule_installer_url }}"
 
-          ubuntu_installer_dest: "file://{{ molecule_libvirt_path }}/server-live.iso"
-          ubuntu_installer_url: "{{ molecule_iso }}"
+        libvirt_network: "nephelaiio-growfs"
+        libvirt_platforms: "{{ molecule_yml.platforms }}"
+        libvirt_address: "172.31.249.1/24"
+        libvirt_path: "{{ molecule_project }}/libvirt/nephelaiio-ubuntu-installer"
+        libvirt_privkey: "{{ libvirt_path }}/id_rsa"
+        libvirt_guest_iso: "{{ libvirt_path }}/{{ inventory_hostname }}.iso"
+        libvirt_nameservers:
+          - 1.1.1.1
+          - 8.8.8.8
 
-          molecule_libvirt_netaddr: "{{ lookup('env', 'MOLECULE_NET', default='192.168.245.0/24') | ansible.utils.ipv4('network/prefix') }}"
-          molecule_libvirt_netsize: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('prefix') }}"
-          molecule_libvirt_address: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(1) }}/{{ molecule_libvirt_netsize }}"
-          molecule_libvirt_network: "molecule"
-          molecule_libvirt_path: "/var/lib/libvirt/ubuntu"
-          molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO', default='jammy') }}"
-          molecule_iso: "{{ lookup('env', 'MOLECULE_ISO') }}"
-          molecule_install_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"
-          molecule_kvm_keypair: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/kvm_key"
-          molecule_kvm_guests:
-            - installer_hostname: "{{ molecule_distro }}-lvm-10g"
-              installer_disk_size: "{{ 10*(1024**3) }}"
-              installer_interface:
-                static: true
-                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(2) }}"
-                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
-                nameservers:
-                  - 1.1.1.1
-                  - 8.8.8.8
-              installer_partitioning_method: lvm
+        molecule_distro: "{{ lookup('env', 'MOLECULE_DISTRO') }}"
+        molecule_installer_url: "{{ lookup('env', 'MOLECULE_ISO') }}"
+        molecule_install_dir: "{{ lookup('env', 'MOLECULE_OUTPUT_DIR', default='/tmp/logs') }}"
+        molecule_network: "{{ libvirt_address | ansible.utils.ipaddr('network') }}"
+        molecule_netmask: "{{ libvirt_address | ansible.utils.ipaddr('netmask') }}"
+        molecule_prefix: "{{ libvirt_address | ansible.utils.ipaddr('prefix') }}"
+        molecule_netaddr: "{{ molecule_network }}/{{ molecule_prefix }}"
+        molecule_project: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}"
 
-            - installer_hostname: "{{ molecule_distro }}-static-10g"
-              installer_disk_size: "{{ 10*(1024**3) }}"
-              installer_interface:
-                static: true
-                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(3) }}"
-                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
-                nameservers:
-                  - 1.1.1.1
-                  - 8.8.8.8
-              installer_partitioning_method: regular
+    host_vars:
+      localhost:
+        ansible_connection: local
+        ansible_python_interpreter: python
 
-            - installer_hostname: "{{ molecule_distro }}-lvm-50g"
-              installer_disk_size: "{{ 50*(1024**3) }}"
-              installer_interface:
-                static: true
-                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(4) }}"
-                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
-                nameservers:
-                  - 1.1.1.1
-                  - 8.8.8.8
-              installer_partitioning_method: lvm
+      ${MOLECULE_SCENARIO_NAME}-lvm-10g:
+        libvirt_guest_size: "{{ 10*(1024**3) }}"
+        libvirt_guest_address: "{{ molecule_netaddr | ansible.utils.nthhost(2) }}"
+        partitioning_method: lvm
+        installer_interface:
+          static: true
+          ipaddress: "{{ libvirt_guest_address }}"
+          network: "{{ molecule_network }}"
+          netmask: "{{ molecule_netmask }}"
+          gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
+          nameservers: "{{ libvirt_nameservers }}"
 
-            - installer_hostname: "{{ molecule_distro }}-static-50g"
-              installer_disk_size: "{{ 50*(1024**3) }}"
-              installer_interface:
-                static: true
-                ipaddress: "{{ molecule_libvirt_netaddr | ansible.utils.nthhost(5) }}"
-                network: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('network') }}"
-                netmask: "{{ molecule_libvirt_netaddr | ansible.utils.ipaddr('netmask') }}"
-                gateway: "{{ molecule_libvirt_address | ansible.utils.ipaddr('address') }}"
-                nameservers:
-                  - 1.1.1.1
-                  - 8.8.8.8
-              installer_partitioning_method: regular
+      ${MOLECULE_SCENARIO_NAME}-static-10g:
+        libvirt_guest_size: "{{ 10*(1024**3) }}"
+        libvirt_guest_address: "{{ molecule_netaddr | ansible.utils.nthhost(3) }}"
+        partitioning_method: regular
+        installer_interface:
+          static: true
+          ipaddress: "{{ libvirt_guest_address }}"
+          network: "{{ molecule_network }}"
+          netmask: "{{ molecule_netmask }}"
+          gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
+          nameservers: "{{ libvirt_nameservers }}"
+
+      ${MOLECULE_SCENARIO_NAME}-lvm-50g:
+        libvirt_guest_size: "{{ 50*(1024**3) }}"
+        libvirt_guest_address: "{{ molecule_netaddr | ansible.utils.nthhost(4) }}"
+        partitioning_method: lvm
+        installer_interface:
+          static: true
+          ipaddress: "{{ libvirt_guest_address }}"
+          network: "{{ molecule_network }}"
+          netmask: "{{ molecule_netmask }}"
+          gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
+          nameservers: "{{ libvirt_nameservers }}"
+
+      ${MOLECULE_SCENARIO_NAME}-static-50g:
+        libvirt_guest_size: "{{ 50*(1024**3) }}"
+        libvirt_guest_address: "{{ molecule_netaddr | ansible.utils.nthhost(5) }}"
+        partitioning_method: regular
+        installer_interface:
+          static: true
+          ipaddress: "{{ libvirt_guest_address }}"
+          network: "{{ molecule_network }}"
+          netmask: "{{ molecule_netmask }}"
+          gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
+          nameservers: "{{ libvirt_nameservers }}"
 
 verifier:
   name: ansible
@@ -99,6 +106,7 @@ scenario:
   test_sequence:
     - dependency
     - prepare
+    - create
     - converge
     - verify
     - cleanup

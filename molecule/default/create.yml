@@ -8,8 +8,8 @@
     - name: Build ubuntu installer isos
       ansible.builtin.include_role:
         name: nephelaiio.ubuntu_installer
-      apply:
-        become: true
+        apply:
+          become: true
       vars:
         ubuntu_installer_interface_name: enp1s0
         ubuntu_installer_target_dir: "{{ libvirt_path }}"

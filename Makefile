@@ -33,7 +33,7 @@ install:
 
 lint: install
 	uv run yamllint .
-	puv run ansible-lint .
+	uv run ansible-lint .
 	uv run molecule syntax
 
 

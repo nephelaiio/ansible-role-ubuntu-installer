@@ -8,12 +8,10 @@ on:
   pull_request:
     branches:
       - master
-  schedule:
-    - cron: "0 3 * * 0"
 
-defaults:
-  run:
-    working-directory: "nephelaiio.ubuntu_installer"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   molecule:
@@ -21,26 +19,19 @@ jobs:
     runs-on: libvirt
     strategy:
       matrix:
-        include:
-          - distro: "jammy"
-            net: "192.168.255.0/24"
-          - distro: "focal"
-            net: "192.168.254.0/24"
-          - distro: "noble"
-            net: "192.168.253.0/24"
+        distro:
+          - "jammy"
+          - "focal"
+          - "noble"
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v4
-        with:
-          path: "nephelaiio.ubuntu_installer"
 
       - name: Generate devbox locale
         run: sudo locale-gen C.UTF-8
 
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.12.0
-        with:
-          project-path: "nephelaiio.ubuntu_installer"
 
       - name: Debug test environment
         run: devbox run -- make debug
@@ -51,7 +42,6 @@ jobs:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
           UBUNTU_DISTRO: ${{ matrix.distro }}
-          MOLECULE_NET: ${{ matrix.net }}
           MOLECULE_OUTPUT_DIR: "/tmp/logs"
 
       - name: Upload install logs

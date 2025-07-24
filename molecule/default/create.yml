@@ -1,0 +1,22 @@
+---
+- name: Create KVM guest installer isos
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Build ubuntu installer isos
+      ansible.builtin.include_role:
+        name: nephelaiio.ubuntu_installer
+      vars:
+        ubuntu_guest: "{{ hostvars[item] }}"
+        ubuntu_installer_interface_name: enp1s0
+        ubuntu_installer_target_dir: "{{ libvirt_path }}"
+        ubuntu_installer_image_url: "file://{{ libvirt_path }}/{{ molecule_distro }}.iso"
+        ubuntu_installer_hostname: "{{ item }}"
+        ubuntu_installer_username: molecule
+        ubuntu_installer_password: "{{ 'molecule' | password_hash('sha512') }}"
+        ubuntu_installer_sshkey:
+          - "{{ lookup('file', libvirt_privkey + '.pub') }}"
+        ubuntu_installer_interface: "{{ ubuntu_guest.installer_interface }}"
+        ubuntu_installer_partman_method: "{{ ubuntu_guest.partitioning_method }}"
+      loop: "{{ groups['all'] }}"

@@ -1,61 +1,27 @@
 ---
-- name: Verify ISO creation
-  hosts: localhost
-  tasks:
-    - name: Retrieve guest ISO status
-      ansible.builtin.stat:
-        path: "{{ molecule_libvirt_path }}/{{ item }}.iso"
-      loop: "{{ molecule_kvm_guests | map(attribute='installer_hostname') }}"
-      become: true
-      register: guest_isos
-
-    - name: Verify ISO creation
-      ansible.builtin.fail:
-        msg: unable to find iso
-      loop_control:
-        loop_var: guest_iso
-        label: "{{ guest_iso.stat.path | default('unknown') }}"
-      loop: "{{ guest_isos.results }}"
-      when: not (guest_iso.stat.exists | bool)
-
-
-- name: Add guests to inventory
-  hosts: localhost
-  become: true
-  tasks:
-    - name: Add guest to inventory
-      ansible.builtin.add_host:
-        name: "{{ guest_hostname }}"
-        groups:
-          - install
-        ansible_user: molecule
-        ansible_host: "{{ guest_address }}"
-        ansible_ssh_private_key_file: "{{ molecule_kvm_keypair }}"
-        partitioning_method: "{{ guest.installer_partitioning_method }}"
-        disk_location: "{{ molecule_libvirt_path }}/{{ guest.installer_hostname }}.img"
-        disk_size: "{{ guest.installer_disk_size }}"
-        disk_index: "{{ disk_index }}"
-      vars:
-        guest_hostname: "{{ guest.installer_hostname }}"
-        guest_address: "{{ guest.installer_interface.ipaddress }}"
-      loop_control:
-        loop_var: guest
-        index_var: disk_index
-        label: "{{ guest.installer_hostname }}"
-      loop: "{{ molecule_kvm_guests }}"
-
-
-- name: Verify guests
-  hosts: install
+- name: Verify guest ISO
+  hosts: all
   gather_facts: false
   tasks:
-    - name: Debug connection parameters
-      ansible.builtin.debug:
-        msg: >
-          ssh {{ ansible_user }}@{{ ansible_host }}
-          {{ ansible_ssh_common_args | default('') }}
-          -i {{ ansible_ssh_private_key_file }}
+    - name: Verify ISO creation
+      delegate_to: localhost
+      vars:
+        libvirt_guest_iso: "{{ libvirt_path }}/{{ inventory_hostname }}.iso"
+      block:
+        - name: Retrieve guest ISO status
+          ansible.builtin.stat:
+            path: "{{ libvirt_guest_iso }}"
+          register: guest_iso
 
+        - name: Verify ISO creation
+          ansible.builtin.assert:
+            that: guest_iso.stat.exists | bool
+            msg: Unable to find iso "{{ libvirt_guest_iso }}"
+
+- name: Verify guest deployment
+  hosts: all
+  gather_facts: false
+  tasks:
     - name: Wait for connection
       block:
         - name: Wait for guest
@@ -93,136 +59,21 @@
               when:
                 - lsblk_output.stdout is not search('lvm')
 
+        - name: Set disk facts
+          ansible.builtin.set_fact:
+            root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
+
         - name: Debug disk size
           ansible.builtin.debug:
-            msg: "{{ ((installer_root_device.size_total | int) / (gb | int)) | round(2) }} GB"
-          vars:
-            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
-            gb: "{{ 1024**3 }}"
+            msg: "{{ ((root_device.size_total | int) / (1024**3 | int)) | round(2) }} GB"
 
         - name: Check root device size
-          ansible.builtin.fail:
-            msg: "{{ installer_root_size }} < {{ installer_root_threshold }} ({{ disk_size }})"
+          ansible.builtin.assert:
+            that: (root_size | int) > (root_threshold | int)
+            fail_msg: "{{ root_size | int }} < {{ root_threshold }} ({{ libvirt_guest_size }})"
           vars:
-            installer_root_device: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | list | first }}"
-            installer_root_size: "{{ installer_root_device.size_total }}"
-            installer_root_threshold: "{{ (0.80 * (disk_size | int)) | int }}"
-          when: (installer_root_size | int) < (installer_root_threshold | int)
+            root_size: "{{ root_device.size_total }}"
+            root_threshold: "{{ (0.80 * (libvirt_guest_size | int)) | int }}"
 
-      always:
-        - name: Set debug facts
-          ansible.builtin.set_fact:
-            debug_disk: "{{ disk_location }}.debug"
-            debug_hostdir: "{{ _hostdir }}"
-            debug_logfile: "{{ _logfile }}"
-            debug_crashdir: "{{ _crashdir }}"
-            debug_output_dir: "{{ molecule_install_dir }}"
-            debug_output_curtin: "{{ molecule_install_dir }}/{{ inventory_hostname }}.curtin.log"
-            debug_output_screenshot: "{{ molecule_install_dir }}/{{ inventory_hostname }}.png"
-          vars:
-            _hostdir: "{{ molecule_libvirt_path }}/{{ inventory_hostname }}"
-            _logfile: "{{ _hostdir }}/var/log/installer/curtin-install.log"
-            _crashdir: "{{ _hostdir }}/var/crash/"
-
-        - name: Create output directory
-          ansible.builtin.file:
-            state: directory
-            path: "{{ debug_output_dir }}"
-          delegate_to: localhost
-          run_once: true
-
-        - name: Take guest screenshot
-          ansible.builtin.command: "virsh screenshot {{ inventory_hostname }} {{ debug_output_screenshot }}"
-          delegate_to: localhost
-          become: true
-
-        - name: End play for lvm guests
-          ansible.builtin.meta: end_host
-          when: partitioning_method != 'regular'
-
-        - name: End play for guests with disks over 11GB
-          ansible.builtin.meta: end_host
-          when: disk_size > 11 * gb
-          vars:
-            gb: "{{ 1024**3 }}"
-
-        - name: Gather install logs
-          delegate_to: localhost
-          become: true
-          block:
-            - name: Create output hostname directory
-              ansible.builtin.file:
-                state: directory
-                path: "{{ debug_hostdir }}"
-
-            - name: Load NBD module
-              community.general.modprobe:
-                name: nbd
-                state: present
-
-            - name: Disconnect disk image from NBD device
-              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
-
-            - name: Copy guest disk
-              ansible.builtin.copy:
-                src: "{{ disk_location }}"
-                dest: "{{ debug_disk }}"
-                remote_src: true
-
-            - name: Connect disk image to NBD device
-              ansible.builtin.command: "qemu-nbd -f raw -c /dev/nbd{{ disk_index }} {{ debug_disk }}"
-
-            - name: Query NBD mount target
-              ansible.builtin.command: "sfdisk --json /dev/nbd{{ disk_index }}"
-              register: fdisk_nbd
-
-            - name: Mount guest image file
-              ansible.posix.mount:
-                path: "{{ debug_hostdir }}"
-                src: "{{ nbd_partition.node }}"
-                fstype: ext4
-                state: ephemeral
-              vars:
-                nbd_partition: "{{ nbd_data.partitiontable.partitions | last }}"
-                nbd_data: "{{ fdisk_nbd.stdout | from_json }}"
-
-            - name: Query guest installation files
-              ansible.builtin.find:
-                paths: "{{ debug_logfile | dirname }}"
-                recurse: no
-                file_type: file
-              register: debug_files
-
-            - name: Debug guest installation files
-              ansible.builtin.debug:
-                msg: "{{ debug_files.files | map(attribute='path') }}"
-
-            - name: Query guest crash files
-              ansible.builtin.find:
-                paths: "{{ debug_crashdir }}"
-                recurse: no
-                file_type: file
-              register: crash_files
-
-            - name: Debug guest crash files
-              ansible.builtin.debug:
-                msg: "{{ crash_files.files | map(attribute='path') }}"
-
-            - name: Copy guest curtin installation log
-              ansible.builtin.copy:
-                src: "{{ debug_logfile }}"
-                dest: "{{ debug_output_curtin }}"
-                remote_src: true
-              when: debug_logfile in (debug_files.files | map(attribute='path'))
-
-            - name: Debug curtin installation log location
-              ansible.builtin.debug:
-                msg: "Installation logs for {{ inventory_hostname }} available at {{ debug_output_curtin }}"
-
-            - name: Unmount guest
-              ansible.posix.mount:
-                path: "{{ debug_hostdir }}"
-                state: unmounted
-
-            - name: Disconnect disk image from NBD device
-              ansible.builtin.command: "qemu-nbd -d /dev/nbd{{ disk_index }}"
+- name: Debug KVM guests
+  ansible.builtin.import_playbook: nephelaiio.libvirt.debug

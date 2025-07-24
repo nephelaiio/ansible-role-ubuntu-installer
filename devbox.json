@@ -1,23 +1,21 @@
 {
-  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.14.0/.schema/devbox.schema.json",
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.14.2/.schema/devbox.schema.json",
   "packages": [
-    "python@3.11.11",
-    "poetry@latest",
-    "poetryPlugins.poetry-plugin-export@latest",
+    "python@3.12",
     "libvirt@latest",
-    "networkmanager@latest",
+    "libisoburn@latest",
     "expect@latest",
     "gnupg@latest",
     "xfsprogs@latest",
     "gnumake@latest",
     "yq@latest",
-    "glibcLocales@latest"
+    "uv@latest",
+    "cloud-utils@latest",
+    "virt-viewer@latest"
   ],
-  "env": {
-    "LC_ALL": "C.UTF-8"
-  },
+  "env": {},
   "shell": {
-    "init_hook": [],
+    "init_hook": [". .venv/bin/activate"],
     "scripts": {}
   }
 }

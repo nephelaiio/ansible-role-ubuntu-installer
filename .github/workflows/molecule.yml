@@ -17,6 +17,8 @@ jobs:
           - "jammy"
           - "focal"
           - "noble"
+        scenario:
+          - "default"
     env:
       MOLECULE_LOGDIR: "/tmp/logs"
     steps:

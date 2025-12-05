@@ -1,29 +1,13 @@
 ---
 name: release
-
-env:
-  DEVBOX_VERSION: ${{ vars.DEVBOX_VERSION }}
-
+permissions:
+  contents: read
 on:
   push:
     tags:
       - "*"
-
 jobs:
   release:
-    name: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Generate devbox locale
-        run: sudo locale-gen C.UTF-8
-
-      - name: Install devbox
-        uses: jetify-com/devbox-install-action@v0.12.0
-
-      - name: Release collection
-        run: devbox run -- make publish
-        env:
-          GALAXY_API_KEY: "${{ secrets.GALAXY_API_KEY }}"
+    uses: pokerops/ansible-utils/.github/workflows/release.yml@master
+    secrets:
+      GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}

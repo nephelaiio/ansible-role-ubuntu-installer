@@ -1,21 +1,15 @@
 ---
 name: molecule
-
-env:
-  DEVBOX_VERSION: ${{ vars.DEVBOX_VERSION }}
-
 on:
   pull_request:
     branches:
       - master
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  molecule:
-    name: molecule
+  libvirt:
+    name: libvirt
     runs-on: libvirt
     strategy:
       matrix:
@@ -23,33 +17,26 @@ jobs:
           - "jammy"
           - "focal"
           - "noble"
+        scenario:
+          - "default"
+    env:
+      MOLECULE_LOGDIR: "/tmp/logs"
     steps:
-      - name: Check out the codebase.
-        uses: actions/checkout@v4
-
-      - name: Generate devbox locale
-        run: sudo locale-gen C.UTF-8
-
-      - name: Install devbox
-        uses: jetify-com/devbox-install-action@v0.12.0
-
-      - name: Debug test environment
-        run: devbox run -- make debug
-
-      - name: Run Molecule tests.
-        run: devbox run -- make test
-        env:
-          PY_COLORS: "1"
-          ANSIBLE_FORCE_COLOR: "1"
-          UBUNTU_DISTRO: ${{ matrix.distro }}
-          MOLECULE_OUTPUT_DIR: "/tmp/logs"
+      - name: Run devbox tests
+        uses: pokerops/ansible-utils@master
+        with:
+          run: |
+            make requirements test \
+              MOLECULE_LOGDIR=${{ env.MOLECULE_LOGDIR }} \
+              MOLECULE_SCENARIO=${{ matrix.scenario }} \
+              MOLECULE_KVM_IMAGE=${{ matrix.image }}
 
       - name: Upload install logs
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.distro }}.log
+          name: install.${{ matrix.scenario }}.${{ matrix.distro }}
           path: |
-            /tmp/logs/*.png
-            /tmp/logs/*.log
+            ${{ env.MOLECULE_LOGDIR }}/*.log
+            ${{ env.MOLECULE_LOGDIR }}/*.png
           if-no-files-found: ignore
         if: always()

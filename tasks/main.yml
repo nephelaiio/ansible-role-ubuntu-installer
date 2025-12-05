@@ -39,7 +39,7 @@
 
 - name: Set interface prefix
   ansible.builtin.set_fact:
-    ubuntu_installer_interface_prefix: "{{ _interface_ip | ipaddr('prefix') }}"
+    ubuntu_installer_interface_prefix: "{{ _interface_ip | ansible.utils.ipaddr('prefix') }}"
   vars:
     _interface_ip: "{{ ubuntu_installer_interface.ipaddress }}/{{ ubuntu_installer_interface.netmask }}"
   when: ubuntu_installer_interface.static | bool

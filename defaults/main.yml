@@ -21,7 +21,7 @@ ubuntu_installer_target_filename: "{{ ubuntu_installer_hostname }}.iso"
 ubuntu_installer_hostname: host.example.com
 ubuntu_installer_interface: # override seed file network autoconfiguration
   static: false
-ubuntu_installer_interface_name: eno1 # should probably be overriden
+ubuntu_installer_interface_name: eno1 # should probably be overridden
 ubuntu_installer_poweroff: false
 ubuntu_installer_mirror: archive.ubuntu.com
 ubuntu_installer_image_packages: []

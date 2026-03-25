@@ -26,12 +26,16 @@ autoinstall:
     config:
       {{ _storage_config | to_nice_yaml(indent=2) | indent(6) }}
   apt:
+{% if _mirror_primary != '' %}
     primary:
       - arches: [default]
         uri: http://{{ _mirror_primary }}/ubuntu/
+{% endif %}
+{% if _mirror_security != '' %}
     security:
       - arches: [default]
         uri: http://{{ _mirror_security }}/ubuntu/
+{% endif %}
     fallback: offline-install
   identity:
     hostname: {{ _fqdn }}

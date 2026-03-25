@@ -87,6 +87,8 @@ provisioner:
           netmask: "{{ molecule_netmask }}"
           gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
           nameservers: "{{ libvirt_nameservers }}"
+        ubuntu_installer_mirror: ""
+        ubuntu_installer_security_mirror: ""
 
       ${MOLECULE_SCENARIO_NAME}-static-50g:
         libvirt_guest_size: "{{ 50*(1024**3) }}"
@@ -99,6 +101,8 @@ provisioner:
           netmask: "{{ molecule_netmask }}"
           gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
           nameservers: "{{ libvirt_nameservers }}"
+        ubuntu_installer_mirror: ""
+        ubuntu_installer_security_mirror: ""
 
 verifier:
   name: ansible

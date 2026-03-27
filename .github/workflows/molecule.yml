@@ -26,7 +26,6 @@ jobs:
         partition_method:
           - lvm
           - static
-    env:
     steps:
       - name: Run devbox tests
         uses: pokerops/ansible-utils@master
@@ -40,7 +39,7 @@ jobs:
               MOLECULE_PARTITION_SIZE=${{ matrix.partition_size }}
 
       - name: Upload install logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: install.${{ env.SCENARIO }}.${{ matrix.distro }}
           path: |

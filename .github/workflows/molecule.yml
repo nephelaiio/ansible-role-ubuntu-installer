@@ -41,7 +41,7 @@ jobs:
       - name: Upload install logs
         uses: actions/upload-artifact@v6
         with:
-          name: install.${{ env.SCENARIO }}.${{ matrix.distro }}
+          name: install.${{ env.SCENARIO }}.${{ matrix.distro }}.${{ matrix.partition_method }}.${{ matrix.partition_size }}
           path: |
             ${{ env.LOGDIR }}/*.log
             ${{ env.LOGDIR }}/*.ppm

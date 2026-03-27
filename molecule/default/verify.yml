@@ -46,12 +46,12 @@
           ansible.builtin.fail:
             msg: "expected plain partitioning, found '{{ lsblk_output.stdout }}'"
           when:
-            - partitioning_method == 'regular'
+            - molecule_partition_method == 'regular'
             - lsblk_output.stdout is not search("part") or
               lsblk_output.stdout is search("lvm")
 
         - name: Check lvm partitioning
-          when: partitioning_method == 'lvm'
+          when: molecule_partition_method == 'lvm'
           block:
             - name: Check lvm partitioning
               ansible.builtin.fail:

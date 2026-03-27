@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 env:
   SCENARIO: default
-  LOGDIR: "/tmp/logs"
+  LOGDIR: /tmp/logs
 jobs:
   libvirt:
     name: libvirt

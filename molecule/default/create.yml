@@ -18,5 +18,5 @@
         ubuntu_installer_sshkey:
           - "{{ lookup('file', libvirt_privkey + '.pub') }}"
         ubuntu_installer_interface: "{{ molecule_installer_interface }}"
-        ubuntu_installer_partman_method: "{{ molecule_partitioning_method }}"
+        ubuntu_installer_partman_method: "{{ molecule_partition_method }}"
       loop: "{{ groups['all'] }}"

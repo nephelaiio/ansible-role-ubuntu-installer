@@ -47,12 +47,11 @@ provisioner:
           network: "{{ molecule_network }}"
           netmask: "{{ molecule_netmask }}"
           gateway: "{{ libvirt_address | ansible.utils.ipaddr('address') }}"
-          nameservers: "{{ ubuntu_nameservers }}"
+          nameservers: ["1.1.1.1", "8.8.8.8"]
 
         ubuntu_installer_target_dir: "{{ libvirt_path }}"
         ubuntu_installer_dest: "{{ libvirt_path }}/server-live.iso"
         ubuntu_installer_url: "{{ molecule_installer_url }}"
-        ubuntu_installer_nameservers: ["1.1.1.1", "8.8.8.8"]
 
 verifier:
   name: ansible

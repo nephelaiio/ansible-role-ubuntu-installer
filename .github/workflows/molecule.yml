@@ -7,36 +7,43 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+env:
+  SCENARIO: default
+  LOGDIR: /tmp/logs
 jobs:
   libvirt:
     name: libvirt
     runs-on: libvirt
     strategy:
       matrix:
+        partition_size:
+          - 10
+          - 50
         distro:
-          - "jammy"
-          - "focal"
-          - "noble"
-        scenario:
-          - "default"
-    env:
-      MOLECULE_LOGDIR: "/tmp/logs"
+          - jammy
+          - focal
+          - noble
+        partition_method:
+          - lvm
+          - regular
     steps:
       - name: Run devbox tests
         uses: pokerops/ansible-utils@master
         with:
           run: |
             make requirements test \
-              MOLECULE_LOGDIR=${{ env.MOLECULE_LOGDIR }} \
-              MOLECULE_SCENARIO=${{ matrix.scenario }} \
-              MOLECULE_KVM_IMAGE=${{ matrix.image }}
+              MOLECULE_SCENARIO=${{ env.SCENARIO }} \
+              MOLECULE_LOGDIR=${{ env.LOGDIR }} \
+              MOLECULE_KVM_IMAGE=${{ matrix.image }} \
+              MOLECULE_PARTITION_METHOD=${{ matrix.partition_method }} \
+              MOLECULE_PARTITION_SIZE=${{ matrix.partition_size }}
 
       - name: Upload install logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: install.${{ matrix.scenario }}.${{ matrix.distro }}
+          name: install.${{ env.SCENARIO }}.${{ matrix.distro }}.${{ matrix.partition_method }}.${{ matrix.partition_size }}
           path: |
-            ${{ env.MOLECULE_LOGDIR }}/*.log
-            ${{ env.MOLECULE_LOGDIR }}/*.png
+            ${{ env.LOGDIR }}/*.log
+            ${{ env.LOGDIR }}/*.ppm
           if-no-files-found: ignore
         if: always()

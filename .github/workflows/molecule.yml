@@ -35,9 +35,9 @@ jobs:
             just \
               --set MOLECULE_SCENARIO ${{ env.SCENARIO }} \
               --set MOLECULE_LOGDIR ${{ env.LOGDIR }} \
-              --set MOLECULE_KVM_IMAGE ${{ matrix.image }} \
               --set MOLECULE_PARTITION_METHOD ${{ matrix.partition_method }} \
               --set MOLECULE_PARTITION_SIZE ${{ matrix.partition_size }} \
+              --set UBUNTU_DISTRO ${{ matrix.distro }} \
               requirements test
 
       - name: Upload install logs

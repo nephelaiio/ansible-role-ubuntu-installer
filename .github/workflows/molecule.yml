@@ -23,6 +23,7 @@ jobs:
           - jammy
           - focal
           - noble
+          - resolute
         partition_method:
           - lvm
           - regular
@@ -31,12 +32,13 @@ jobs:
         uses: pokerops/ansible-utils@master
         with:
           run: |
-            make requirements test \
-              MOLECULE_SCENARIO=${{ env.SCENARIO }} \
-              MOLECULE_LOGDIR=${{ env.LOGDIR }} \
-              MOLECULE_KVM_IMAGE=${{ matrix.image }} \
-              MOLECULE_PARTITION_METHOD=${{ matrix.partition_method }} \
-              MOLECULE_PARTITION_SIZE=${{ matrix.partition_size }}
+            just \
+              --set MOLECULE_SCENARIO ${{ env.SCENARIO }} \
+              --set MOLECULE_LOGDIR ${{ env.LOGDIR }} \
+              --set MOLECULE_KVM_IMAGE ${{ matrix.image }} \
+              --set MOLECULE_PARTITION_METHOD ${{ matrix.partition_method }} \
+              --set MOLECULE_PARTITION_SIZE ${{ matrix.partition_size }} \
+              requirements test
 
       - name: Upload install logs
         uses: actions/upload-artifact@v6

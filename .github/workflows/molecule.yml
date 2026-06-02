@@ -8,8 +8,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  SCENARIO: default
-  LOGDIR: /tmp/logs
+  MOLECULE_LOGDIR: /tmp/logs
 jobs:
   libvirt:
     name: libvirt
@@ -27,18 +26,16 @@ jobs:
         partition_method:
           - lvm
           - regular
+    env:
+      MOLECULE_SCENARIO: ${{env.scenario}}
+      MOLECULE_PARTITION_METHOD: ${{ matrix.partition_method }}
+      MOLECULE_PARTITION_SIZE: ${{ matrix.partition_size }}
+      UBUNTU_DISTRO: ${{ matrix.distro }}
     steps:
       - name: Run devbox tests
         uses: pokerops/ansible-utils@master
         with:
-          run: |
-            just \
-              --set MOLECULE_SCENARIO ${{ env.SCENARIO }} \
-              --set MOLECULE_LOGDIR ${{ env.LOGDIR }} \
-              --set MOLECULE_PARTITION_METHOD ${{ matrix.partition_method }} \
-              --set MOLECULE_PARTITION_SIZE ${{ matrix.partition_size }} \
-              --set UBUNTU_DISTRO ${{ matrix.distro }} \
-              requirements test
+          run: just requirements test
 
       - name: Upload install logs
         uses: actions/upload-artifact@v6

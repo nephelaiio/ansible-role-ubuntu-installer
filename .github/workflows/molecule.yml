@@ -26,16 +26,16 @@ jobs:
         partition_method:
           - lvm
           - regular
-    env:
-      MOLECULE_SCENARIO: ${{env.scenario}}
-      MOLECULE_PARTITION_METHOD: ${{ matrix.partition_method }}
-      MOLECULE_PARTITION_SIZE: ${{ matrix.partition_size }}
-      UBUNTU_DISTRO: ${{ matrix.distro }}
     steps:
       - name: Run devbox tests
         uses: pokerops/ansible-utils@master
         with:
           run: just requirements test
+        env:
+          MOLECULE_SCENARIO: ${{env.scenario}}
+          MOLECULE_PARTITION_METHOD: ${{ matrix.partition_method }}
+          MOLECULE_PARTITION_SIZE: ${{ matrix.partition_size }}
+          UBUNTU_DISTRO: ${{ matrix.distro }}
 
       - name: Upload install logs
         uses: actions/upload-artifact@v6

@@ -33,7 +33,6 @@ jobs:
         with:
           run: just requirements test
         env:
-          MOLECULE_SCENARIO: ${{env.scenario}}
           MOLECULE_PARTITION_METHOD: ${{ matrix.partition_method }}
           MOLECULE_PARTITION_SIZE: ${{ matrix.partition_size }}
           UBUNTU_DISTRO: ${{ matrix.distro }}

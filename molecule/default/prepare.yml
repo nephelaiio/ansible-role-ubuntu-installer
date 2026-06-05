@@ -21,3 +21,5 @@
       ansible.builtin.get_url:
         url: "{{ molecule_installer_url }}"
         dest: "{{ libvirt_path }}/{{ molecule_distro }}.iso"
+      retries: 12
+      delay: 10
